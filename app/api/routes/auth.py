@@ -1,33 +1,66 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.repositories.person.person_repository import PersonRepository
+from app.db.session import get_db
 
 from app.schemas.dtos.input.user_input import UserLoginInput, UserRegisterInput
 from app.schemas.dtos.output.user_output import UserOutput
+from app.services.auth_service import AuthService
+
+# Toutes les routes commenceront par /auth
 router = APIRouter(prefix="/auth",tags=["auth"])
 
-users=[]
+@router.post("/register", summary="Inscrire un utilisateur")
+async def register(payload:UserRegisterInput, db:AsyncSession = Depends(get_db)):
+    """
+    payloard : données envoyées par le client (dto)
+    db : session de base de données fournie par FastAPI
+    """
+
+    # Création du repository avec la session DB
+    repo = PersonRepository(db)
+
+    # Création du service métier
+    service = AuthService(repo)
+
+    try:
+        person = await service.register(
+            first_names = payload.firstNames,
+            last_name = payload.lastName,
+            birth_date = payload.birthDate,
+            gender = payload.gender,
+            nationality = payload.nationality,
+            street = payload.street,
+            zip_code = payload.zip,
+            city = payload.city,
+            email = payload.email,
+            phone = payload.phone
+        )
+
+        return UserOutput(
+            id=person.id,
+            email=person.email
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/login", summary="Connecter un utilisateur")
-def login(user:UserLoginInput):
-    for u in users:
-        if u["email"] == user.email and u["password"] == user.password:
-            return UserOutput(
-                id=u["id"],
-                email=u["email"]
-            )
+async def login(payload:UserLoginInput, db:AsyncSession = Depends(get_db)):
+    repo = PersonRepository(db)
+    service = AuthService(repo)
 
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    try:
+        person = await service.login(
+            email = payload.email,
+            password = payload.password
+        )
 
-@router.post("/register", summary="Inscrire un utilisateur")
-def register(user:UserRegisterInput):
-    new_user = {
-        "id": len(user.email) + 1,
-        "email":user.email,
-        "password":user.password,
-    }
+        return UserOutput(
+            id = person.id,
+            email = person.email
+        )
 
-    users.append(new_user)
-
-    return UserOutput(
-        id = new_user["id"],
-        email = new_user["email"],
-    )
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
