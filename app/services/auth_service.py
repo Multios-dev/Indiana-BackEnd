@@ -2,8 +2,8 @@ from datetime import date
 
 from typing import Optional
 
-from app.db.models.person import Person
-from app.db.repositories.person.person_repository import PersonRepository
+from app.db.models.user_model import User
+from app.db.repositories.person.user_repository import PersonRepository
 from app.schemas.dtos.input.user_input import UserRegisterInput
 
 """

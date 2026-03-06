@@ -32,7 +32,7 @@ def load_all_models():
         if file.is_file() and file.suffix == ".py" and file.stem != "__init__":
 
             # Ex :
-            # file = person.py
+            # file = user_model.py
             # file.stem = "person"
             module_name = file.stem
 
