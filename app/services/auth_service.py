@@ -3,7 +3,7 @@ from datetime import date
 from typing import Optional
 
 from app.db.models.user_model import User
-from app.db.repositories.user.user_repository import PersonRepository
+from app.db.repositories.user.user_repository import UserRepository
 
 """
 Service d'authentification
@@ -14,7 +14,7 @@ Son rôle est de :
 """
 class AuthService:
     # Injection du repository
-    def __init__(self, repo:PersonRepository):
+    def __init__(self, repo:UserRepository):
         self.repo = repo
 
     """

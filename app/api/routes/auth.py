@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.repositories.user.user_repository import PersonRepository
+from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 
 from app.schemas.dtos.input.user_input import UserLoginInput, UserRegisterInput
@@ -19,7 +19,7 @@ async def register(payload:UserRegisterInput, db:AsyncSession = Depends(get_db))
     """
 
     # Création du repository avec la session DB
-    repo = PersonRepository(db)
+    repo = UserRepository(db)
 
     # Création du service métier
     service = AuthService(repo)
@@ -48,7 +48,7 @@ async def register(payload:UserRegisterInput, db:AsyncSession = Depends(get_db))
 
 @router.post("/login", summary="Connecter un utilisateur")
 async def login(payload:UserLoginInput, db:AsyncSession = Depends(get_db)):
-    repo = PersonRepository(db)
+    repo = UserRepository(db)
     service = AuthService(repo)
 
     try:
