@@ -40,7 +40,7 @@ class AuthService:
     ) -> User:
 
         # Vérifier que l'email soit unique
-        existing = await self.repo.get_person_by_email(email)
+        existing = await self.repo.get_user_by_email(email)
         if existing:
             # Pour l'instant, on relève une erreur simple
             # Plus tard, l'API convertira ça en HTTP 409
