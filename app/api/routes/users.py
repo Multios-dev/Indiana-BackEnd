@@ -70,3 +70,13 @@ async def update_user(
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.delete("/{user_id}", summary="Supprimer un utilisateur")
+async def delete_user(
+        user_id:int,
+        service:UserService=Depends(get_user_service),
+):
+    try:
+        user = await service.delete_user(user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

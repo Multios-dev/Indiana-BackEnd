@@ -16,23 +16,28 @@ class UserService:
 
     # Récupérer tous les utilisateurs
     async def get_all_users(self):
-        existing = await self.repo.get_all()
-        if not existing:
+        users = await self.repo.get_all()
+        if not users:
             raise ValueError("Users not found")
-        return existing
+        return users
 
     # Récupérer un utilisateur spécifique
     async def get_user_by_id(self, user_id):
-        existing = await self.repo.get_user_by_id(user_id)
-        if not existing:
+        user = await self.repo.get_user_by_id(user_id)
+        if not user:
             raise ValueError("User not found")
-        return existing
+        return user
 
     # Modifier les données d'un utilisateur
     async def update_user(self, user_id, data:dict):
-        existing = await self.repo.get_user_by_id(user_id)
-        if not existing:
+        updated_user = await self.repo.update_user(user_id, data)
+        if not updated_user:
             raise ValueError("User not found")
+        return updated_user
 
-        existing = await self.repo.update_user(user_id, data)
-        return existing
+    # Supprimer un utilisateur
+    async def delete_user(self, user_id):
+        deleted_user = await self.repo.delete_user(user_id)
+        if not deleted_user:
+            raise ValueError("User not found")
+        return deleted_user
