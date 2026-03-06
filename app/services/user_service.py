@@ -12,3 +12,9 @@ class UserService:
         if not existing:
             raise ValueError("Users not found")
         return existing
+
+    async def get_user_by_id(self, user_id):
+        existing = await self.repo.get_user_by_id(user_id)
+        if not existing:
+            raise ValueError("User not found")
+        return existing
