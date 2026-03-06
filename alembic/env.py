@@ -5,6 +5,8 @@ from sqlalchemy import pool
 
 from app.db.base import Base
 import app.db.models
+from app.db.model_loader import load_all_models
+load_all_models()
 
 from alembic import context
 

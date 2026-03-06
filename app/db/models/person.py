@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Date, JSON
 from app.db.base import Base
 
 class Person(Base):
-    __tablename__ = "persons"
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
 
     firstNames = Column(JSON, nullable=False)
