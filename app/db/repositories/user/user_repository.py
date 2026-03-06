@@ -89,7 +89,7 @@ class UserRepository(UserInterface):
                 if hasattr(User, key):    # Vérifie que le champ existe dans le modèle
                     conditions.append(getattr(User, key) == value)
             if conditions:
-                stmt = stmt.where(and_(*conditions)) # Combien tous les filtres
+                stmt = stmt.where(and_(*conditions)) # Combine tous les filtres
 
         result = await self.db.execute(stmt)
         return result.scalars().all()

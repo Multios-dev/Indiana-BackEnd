@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.openapi.models import RequestBody
 
 from app.schemas.dtos.input.user_create_input import UserCreateInput
 from app.schemas.dtos.input.user_update_input import UserUpdateInput
 from app.schemas.dtos.output.get_user_output import GetUserOutput
+from app.schemas.dtos.output.user_output import UserOutput
 from app.services.user_service import UserService, get_user_service
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -77,6 +79,27 @@ async def get_user(
             email=user.email,
             phone=user.phone
         )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/filter", summary="Récupérer les utilisateurs filtrés")
+async def get_users_filtered(
+        request:Request,
+        service:UserService=Depends(get_user_service),
+):
+    try:
+        # request.query_params permet de récupérer tous les paramètres de l'URL
+        filters = dict(request.query_params)
+
+        users = await service.get_users_filtered(filters)
+
+        return [
+            UserOutput(
+                id=user.id,
+                email=user.email
+            )
+            for user in users
+        ]
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
