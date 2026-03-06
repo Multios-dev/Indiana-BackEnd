@@ -1,29 +1,21 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db.repositories.user.user_repository import UserRepository
-from app.db.session import get_db
 
 from app.schemas.dtos.input.user_input import UserLoginInput, UserRegisterInput
 from app.schemas.dtos.output.user_output import UserOutput
-from app.services.auth_service import AuthService
+from app.services.auth_service import AuthService, get_auth_service
 
 # Toutes les routes commenceront par /auth
 router = APIRouter(prefix="/auth",tags=["auth"])
 
 @router.post("/register", summary="Inscrire un utilisateur")
-async def register(payload:UserRegisterInput, db:AsyncSession = Depends(get_db)):
+async def register(
+        payload:UserRegisterInput,
+        service:AuthService = Depends(get_auth_service)
+):
     """
     payloard : données envoyées par le client (dto)
-    db : session de base de données fournie par FastAPI
+    service : service d'authentification injecté
     """
-
-    # Création du repository avec la session DB
-    repo = UserRepository(db)
-
-    # Création du service métier
-    service = AuthService(repo)
-
     try:
         person = await service.register(
             first_names = payload.firstNames,
@@ -47,10 +39,10 @@ async def register(payload:UserRegisterInput, db:AsyncSession = Depends(get_db))
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/login", summary="Connecter un utilisateur")
-async def login(payload:UserLoginInput, db:AsyncSession = Depends(get_db)):
-    repo = UserRepository(db)
-    service = AuthService(repo)
-
+async def login(
+        payload:UserLoginInput,
+        service:AuthService = Depends(get_auth_service)
+):
     try:
         person = await service.login(
             email = payload.email,

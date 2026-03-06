@@ -1,10 +1,23 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
+
 from datetime import date
 
 from typing import Optional
 
 from app.db.models.user_model import User
 from app.db.repositories.user.user_repository import UserRepository
+from app.db.session import get_db
 
+"""
+Fonction qui permet de chaîner les dépendances
+FastAPI injecte la session de db via get_db
+On utilise cette session pour créer le repo, puis on injecte ce repo dans le service
+La db apparaît ici uniquement parce que cette fonction rassemble des objets
+"""
+def get_auth_service(db: AsyncSession = Depends(get_db)):
+    repo = UserRepository(db)
+    return AuthService(repo)
 """
 Service d'authentification
 
@@ -76,7 +89,7 @@ class AuthService:
             password:str
     ) -> User:
         # Chercher la personne
-        person = await self.repo.get_person_by_email(email)
+        person = await self.repo.get_user_by_email(email)
         if not person:
             raise ValueError("Invalid credentials")
 
