@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.schemas.dtos.input.user_update_input import UserUpdateInput
 from app.schemas.dtos.output.get_user_output import GetUserOutput
 from app.services.user_service import UserService, get_user_service
 
@@ -52,6 +53,20 @@ async def get_user(
             city=user.city,
             email=user.email,
             phone=user.phone
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.put("/{user_id}", summary="Modifier les données d'un utilisateur")
+async def update_user(
+        user_id:int,
+        payload: UserUpdateInput,
+        service:UserService=Depends(get_user_service),
+):
+    try:
+        user = await service.update_user(
+            user_id,
+            payload.model_dump()    # Permet de convertir un modèle de données en un dictionnaire
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

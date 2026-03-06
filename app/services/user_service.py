@@ -21,8 +21,18 @@ class UserService:
             raise ValueError("Users not found")
         return existing
 
+    # Récupérer un utilisateur spécifique
     async def get_user_by_id(self, user_id):
         existing = await self.repo.get_user_by_id(user_id)
         if not existing:
             raise ValueError("User not found")
+        return existing
+
+    # Modifier les données d'un utilisateur
+    async def update_user(self, user_id, data:dict):
+        existing = await self.repo.get_user_by_id(user_id)
+        if not existing:
+            raise ValueError("User not found")
+
+        existing = await self.repo.update_user(user_id, data)
         return existing
