@@ -82,7 +82,7 @@ async def get_user(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.get("/filter", summary="Récupérer les utilisateurs filtrés")
+@router.get("/", summary="Récupérer les utilisateurs filtrés")
 async def get_users_filtered(
         request:Request,
         service:UserService=Depends(get_user_service),
