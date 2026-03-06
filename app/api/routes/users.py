@@ -31,13 +31,19 @@ async def create_user(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/", summary="Récupérer tous les utilisateurs")
-async def get_users(service:UserService=Depends(get_user_service)):
-
+@router.get("/", summary="Récupérer les utilisateurs")
+async def get_users(
+        request: Request,
+        service: UserService = Depends(get_user_service),
+):
     try:
-        users = await service.get_all_users()
+        filters = dict(request.query_params)
 
-        # Retourne tous les utilisateurs sous forme de liste
+        if filters:
+            users = await service.get_users_filtered(filters)
+        else:
+            users = await service.get_all_users()
+
         return [
             GetUserOutput(
                 id=user.id,
@@ -79,27 +85,6 @@ async def get_user(
             email=user.email,
             phone=user.phone
         )
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.get("/", summary="Récupérer les utilisateurs filtrés")
-async def get_users_filtered(
-        request:Request,
-        service:UserService=Depends(get_user_service),
-):
-    try:
-        # request.query_params permet de récupérer tous les paramètres de l'URL
-        filters = dict(request.query_params)
-
-        users = await service.get_users_filtered(filters)
-
-        return [
-            UserOutput(
-                id=user.id,
-                email=user.email
-            )
-            for user in users
-        ]
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
