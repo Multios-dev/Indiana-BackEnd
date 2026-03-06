@@ -33,10 +33,10 @@ def load_all_models():
 
             # Ex :
             # file = user_model.py
-            # file.stem = "person"
+            # file.stem = "user"
             module_name = file.stem
 
-            # On construit le chemin du modèle Python (-> app.db.models.person)
+            # On construit le chemin du modèle Python (-> app.db.models.user)
             module_path = f"{package_name}.{module_name}"
 
             # On importe le module

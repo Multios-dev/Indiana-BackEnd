@@ -3,8 +3,7 @@ from datetime import date
 from typing import Optional
 
 from app.db.models.user_model import User
-from app.db.repositories.person.user_repository import PersonRepository
-from app.schemas.dtos.input.user_input import UserRegisterInput
+from app.db.repositories.user.user_repository import PersonRepository
 
 """
 Service d'authentification
@@ -38,7 +37,7 @@ class AuthService:
             email:str,
             phone:str,
             password: Optional[str] = None
-    ) -> Person:
+    ) -> User:
 
         # Vérifier que l'email soit unique
         existing = await self.repo.get_person_by_email(email)
@@ -48,7 +47,7 @@ class AuthService:
             raise ValueError("Email already exists")
 
         # Création de l'objet SQLAlchemy (Person) car SQLAlchemy persiste des modèles ORM, pas des DTO
-        person = Person(
+        person = User(
             firstNames = first_names,
             lastName = last_name,
             birthDate = birth_date,
@@ -75,7 +74,7 @@ class AuthService:
             self,
             email:str,
             password:str
-    ) -> Person:
+    ) -> User:
         # Chercher la personne
         person = await self.repo.get_person_by_email(email)
         if not person:

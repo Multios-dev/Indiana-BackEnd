@@ -4,7 +4,7 @@ from typing import Optional
 from app.db.models.user_model import User
 
 
-class PersonInterface(ABC):
+class UserInterface(ABC):
     # Récupérer une personne par son email
     @abstractmethod
     async def get_person_by_email(self, email: str) -> Optional[User]: ...

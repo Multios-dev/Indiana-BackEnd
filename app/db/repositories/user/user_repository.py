@@ -2,17 +2,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
 from app.db.models.user_model import User
-from app.db.repositories.person.user_interface import PersonInterface
+from app.db.repositories.user.user_interface import PersonInterface
 
 
-class PersonRepository(PersonInterface):
+class UserRepository(UserInterface):
     def __init__(self, db:AsyncSession):
         # On garde une référence à la session db
         # Cette session permettra d'exécuter les requêtes
         self.db = db
 
     # Récupérer un utilisateur par son email
-    async def get_person_by_email(self, email: str):
+    async def get_user_by_email(self, email: str):
         # Construction de la requête
         stmt = select(User).where(User.email == email)
 
@@ -92,4 +92,4 @@ class PersonRepository(PersonInterface):
                 stmt = stmt.where(and_(*conditions)) # Combien tous les filtres
 
         result = await self.db.execute(stmt)
-        return result.scalars.all()
+        return result.scalars().all()
