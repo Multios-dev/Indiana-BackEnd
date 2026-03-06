@@ -4,6 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 
+from app.db.models.user_model import User
+
+from datetime import date
+
+from typing import Optional
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
     repo = UserRepository(db)
@@ -41,3 +46,48 @@ class UserService:
         if not deleted_user:
             raise ValueError("User not found")
         return deleted_user
+
+    # Créer un utilisateur
+    async def create_user(
+            self,
+            first_names:list[str],
+            last_name: str,
+            birth_date: date,
+            gender: str,
+            nationality: str,
+            street: str,
+            zip_code: str,
+            city: str,
+            email: str,
+            phone: str,
+            password: Optional[str] = None
+    )-> User:
+        # Vérifier que l'email soit unique
+        existing = await self.repo.get_user_by_email(email)
+        if existing:
+            # Pour l'instant, on relève une erreur simple
+            # Plus tard, l'API convertira ça en HTTP 409
+            raise ValueError("Email already exists")
+
+        # Création de l'objet SQLAlchemy (Person) car SQLAlchemy persiste des modèles ORM, pas des DTO
+        person = User(
+            firstNames = first_names,
+            lastName = last_name,
+            birthDate = birth_date,
+            gender = gender,
+            nationality = nationality,
+            street = street,
+            zip = zip_code,
+            city = city,
+            email = email,
+            phone = phone,
+
+            # Temporaire : pas de hash, on stocke le mdp tel quel
+            password_hash = password
+        )
+
+        # Ajout à la DB via le repo
+        created = await self.repo.create(person)
+
+        # Retourner l'objet créé
+        return created

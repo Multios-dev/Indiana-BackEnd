@@ -1,10 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.schemas.dtos.input.user_create_input import UserCreateInput
 from app.schemas.dtos.input.user_update_input import UserUpdateInput
 from app.schemas.dtos.output.get_user_output import GetUserOutput
 from app.services.user_service import UserService, get_user_service
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+@router.post("",summary="Créer un utilisateur")
+async def create_user(
+        payload: UserCreateInput,
+        service:UserService=Depends(get_user_service),
+):
+    try:
+        person = await service.create_user(
+            first_names = payload.firstNames,
+            last_name = payload.lastName,
+            birth_date = payload.birthDate,
+            gender = payload.gender,
+            nationality = payload.nationality,
+            street = payload.street,
+            zip_code = payload.zip,
+            city = payload.city,
+            email = payload.email,
+            phone = payload.phone
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/", summary="Récupérer tous les utilisateurs")
 async def get_users(service:UserService=Depends(get_user_service)):
