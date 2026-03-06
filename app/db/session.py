@@ -14,6 +14,8 @@ engine = create_async_engine(
 SessionLocal = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
+    autocommit=False,
+    autoflush=False
 )
 
 # Fonctione utilisée pour obtenir une session DB
