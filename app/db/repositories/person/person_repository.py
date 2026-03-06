@@ -16,7 +16,7 @@ class PersonRepository(PersonInterface):
         stmt = select(Person).where(Person.email == email)
 
         # execute est async, donc il faut await
-        result = self.db.execute(stmt)
+        result = await self.db.execute(stmt)
 
         # scalar_one_or_none renvoie l'objet Person ou None si aucune ligne
         return result.scalar_one_or_none()
