@@ -40,3 +40,14 @@ async def get_all_organizations(
         ]
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/{org_id}", summary="Récupérer une organisation spécicifique")
+async def get_organization(
+        org_id:int,
+        service:OrganizationService = Depends(get_organization_service)
+):
+    try:
+        organization = await service.get_organization_by_id(org_id)
+        return organization
+    except:
+        raise HTTPException(status_code=404, detail="Organization not found")

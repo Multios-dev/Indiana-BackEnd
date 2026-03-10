@@ -19,3 +19,10 @@ class OrganizationService:
         if not organizations:
             raise ValueError("No organizations found")
         return organizations
+
+    # Récupérer une organisation spécifique (par son id)
+    async def get_organization_by_id(self, id:int):
+        organization = await self.repo.get_organization_by_id(id)
+        if not organization:
+            raise ValueError("Organization not found")
+        return organization

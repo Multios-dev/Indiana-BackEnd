@@ -4,6 +4,9 @@ from app.db.models.organization_model import Organization
 
 
 class OrganizationInterface(ABC):
-    # Récupérer une organisation par son id
+    # Récupérer toutes les organisations
     @abstractmethod
     async def get_all_organizations(self)->Optional[List[Organization]]:...
+
+    @abstractmethod
+    async def get_organization_by_id(self, id:int)->Optional[Organization]:...

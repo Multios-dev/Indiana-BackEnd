@@ -10,7 +10,14 @@ class OrganizationRepository(OrganizationInterface):
         # Cette session permettra d'exécuter les requêtes
         self.db = db
 
+    # Récupérer toutes les organisations
     async def get_all_organizations(self):
         stmt = select(Organization)
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    # Récupérer une organisation par son id
+    async def get_organization_by_id(self, id:int):
+        stmt = select(Organization).where(Organization.id == id)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
