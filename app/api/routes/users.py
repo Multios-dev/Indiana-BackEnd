@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.schemas.dtos.input.user_create_input import UserCreateInput
-from app.schemas.dtos.input.user_update_input import UserUpdateInput
-from app.schemas.dtos.output.get_user_output import GetUserOutput
-from app.schemas.dtos.output.user_output import UserOutput
+from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
+from app.schemas.dtos.output.user_output import UserOutput, GetUserOutput
+
 from app.services.user_service import UserService, get_user_service
 
 router = APIRouter(prefix="/users", tags=["users"])

@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
-from app.db.models.organization_model import Organization
-from app.schemas.dtos.input.create_organization_input import CreateOrganizationInput
-from app.schemas.dtos.input.update_organization_input import UpdateOrganizationInput
+from app.schemas.dtos.input.organization_input import CreateOrganizationInput, UpdateOrganizationInput
 from app.schemas.dtos.output.organization_output import GetOrganizationOutput
 from app.services.organization_service import OrganizationService, get_organization_service
 
