@@ -80,3 +80,13 @@ async def update_organization(
             raise HTTPException(status_code=404, detail=message)
 
         raise HTTPException(status_code=400, detail=message)
+
+@router.delete("/{org_id}", summary="Supprimer une organisation")
+async def delete_organization(
+        org_id: int,
+        service: OrganizationService = Depends(get_organization_service)
+):
+    try:
+        return await service.delete_organization(org_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

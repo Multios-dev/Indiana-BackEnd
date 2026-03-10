@@ -50,3 +50,20 @@ class OrganizationRepository(OrganizationInterface):
         except Exception:
             await self.db.rollback()
             raise
+
+    # Supprimer une organisation
+    async def delete_organization(self, id_organization: int):
+        try:
+            stmt = select(Organization).where(Organization.id == id_organization)
+            result = await self.db.execute(stmt)
+            organization_found = result.scalar_one_or_none()
+
+            if not organization_found:
+                return None
+
+            await self.db.delete(organization_found)
+            await self.db.commit()
+            return organization_found
+        except Exception:
+            await self.db.rollback()
+            raise

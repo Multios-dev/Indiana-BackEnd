@@ -89,3 +89,9 @@ class OrganizationService:
             raise ValueError("Organization not found")
 
         return updated
+
+    async def delete_organization(self, id_organization: int):
+        deleted = await self.repo.delete_organization(id_organization)
+        if not deleted:
+            raise ValueError("Organization not found")
+        return deleted
