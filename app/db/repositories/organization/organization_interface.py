@@ -13,3 +13,6 @@ class OrganizationInterface(ABC):
     # Créer une organisation
     @abstractmethod
     async def create_organization(self, organization:Organization)->Organization:...
+    # Modifier une organisation
+    @abstractmethod
+    async def update_organization(self, id_organization:int, data:dict)->Organization:...

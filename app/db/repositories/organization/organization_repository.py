@@ -28,3 +28,25 @@ class OrganizationRepository(OrganizationInterface):
         await self.db.commit()
         await self.db.refresh(organization)
         return organization
+
+    # Modifier une organisation
+    async def update_organization(self, id_organization: int, data: dict):
+        try:
+            stmt = select(Organization).where(Organization.id == id_organization)
+            result = await self.db.execute(stmt)
+            organization_found = result.scalar_one_or_none()
+
+            if not organization_found:
+                return None
+
+            for key, value in data.items():
+                if key != "id" and hasattr(organization_found, key):
+                    setattr(organization_found, key, value)
+
+            await self.db.commit()
+            await self.db.refresh(organization_found)
+            return organization_found
+
+        except Exception:
+            await self.db.rollback()
+            raise

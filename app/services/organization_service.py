@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas.dtos.input.create_organization_input import CreateOrganizationInput
+from app.schemas.dtos.input.update_organization_input import UpdateOrganizationInput
 
 
 def get_organization_service(db:AsyncSession = Depends(get_db)):
@@ -59,3 +60,32 @@ class OrganizationService:
         )
 
         return await self.repo.create_organization(organization)
+
+    # Modifier une organisation
+    # Modifier une organisation
+    async def update_organization(self, id_organization: int, payload: UpdateOrganizationInput):
+        data = payload.model_dump(exclude_unset=True)
+
+        if not data:
+            raise ValueError("No data provided for update")
+
+        # Gérer parent_id = 0 comme absence de parent
+        if "parent_id" in data and data["parent_id"] == 0:
+            data["parent_id"] = None
+
+        # Vérifier que le parent existe si un parent_id est fourni
+        if "parent_id" in data and data["parent_id"] is not None:
+            parent = await self.repo.get_organization_by_id(data["parent_id"])
+            if not parent:
+                raise ValueError("Parent organization does not exist")
+
+            # Empêcher une organisation d'être son propre parent
+            if data["parent_id"] == id_organization:
+                raise ValueError("An organization cannot be its own parent")
+
+        updated = await self.repo.update_organization(id_organization, data)
+
+        if not updated:
+            raise ValueError("Organization not found")
+
+        return updated

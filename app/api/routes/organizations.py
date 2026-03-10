@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 
 from app.db.models.organization_model import Organization
 from app.schemas.dtos.input.create_organization_input import CreateOrganizationInput
+from app.schemas.dtos.input.update_organization_input import UpdateOrganizationInput
 from app.schemas.dtos.output.organization_output import GetOrganizationOutput
 from app.services.organization_service import OrganizationService, get_organization_service
 
@@ -63,3 +64,19 @@ async def get_organization(
         return organization
     except:
         raise HTTPException(status_code=404, detail="Organization not found")
+
+@router.put("/{org_id}", summary="Modifier une organisation")
+async def update_organization(
+        org_id: int,
+        payload: UpdateOrganizationInput,
+        service: OrganizationService = Depends(get_organization_service)
+):
+    try:
+        return await service.update_organization(org_id, payload)
+    except ValueError as e:
+        message = str(e)
+
+        if message == "Organization not found":
+            raise HTTPException(status_code=404, detail=message)
+
+        raise HTTPException(status_code=400, detail=message)
