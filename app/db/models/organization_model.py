@@ -1,4 +1,4 @@
-from psycopg2.extensions import JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Column, Integer, String, Boolean, Enum
 from sqlalchemy.orm import relationship
 
