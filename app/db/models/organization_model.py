@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import Column, Integer, String, Boolean, Enum
+from sqlalchemy import Column, Integer, String, Boolean, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -15,7 +15,7 @@ class Organization(Base):
     logo = Column(String, nullable=True)
 
     # Hiérarchie
-    parent_id = Column(Integer, nullable=True)
+    parent_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
 
     # Contact
     email = Column(String, nullable=True)
