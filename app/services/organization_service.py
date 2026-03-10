@@ -32,11 +32,18 @@ class OrganizationService:
 
     # Créer une organisation
     async def create_organization(self, payload: CreateOrganizationInput) -> Organization:
+        parent_id = None if payload.parent_id == 0 else payload.parent_id
+
+        if parent_id is not None:
+            parent = await self.repo.get_organization_by_id(parent_id)
+            if not parent:
+                raise ValueError("Parent organization does not exist")
+
         organization = Organization(
             name=payload.name,
             acronym=payload.acronym,
             logo=payload.logo,
-            parent_id=None if payload.parent_id == 0 else payload.parent_id,
+            parent_id=parent_id,
             email=payload.email,
             phone=payload.phone,
             website=payload.website,
