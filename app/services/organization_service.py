@@ -1,5 +1,13 @@
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import get_db
+
+def get_organization_service(db:AsyncSession = Depends(get_db)):
+    repo = OrganizationRepository(db)
+    return OrganizationService(repo)
 
 class OrganizationService:
     def __init__(self, repo:OrganizationRepository):
