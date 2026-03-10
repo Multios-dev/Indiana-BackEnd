@@ -7,6 +7,9 @@ class OrganizationInterface(ABC):
     # Récupérer toutes les organisations
     @abstractmethod
     async def get_all_organizations(self)->Optional[List[Organization]]:...
-
+    # Récupérer une organisation spécifique
     @abstractmethod
     async def get_organization_by_id(self, id:int)->Optional[Organization]:...
+    # Créer une organisation
+    @abstractmethod
+    async def create_organization(self, organization:Organization)->Organization:...

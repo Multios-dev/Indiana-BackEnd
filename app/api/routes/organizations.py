@@ -1,9 +1,21 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
+from app.db.models.organization_model import Organization
+from app.schemas.dtos.input.create_organization_input import CreateOrganizationInput
 from app.schemas.dtos.output.organization_output import GetOrganizationOutput
 from app.services.organization_service import OrganizationService, get_organization_service
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
+
+@router.post("", summary="Créer une organisation")
+async def create_organization(
+        payload:CreateOrganizationInput,
+        service:OrganizationService = Depends(get_organization_service)
+):
+    try:
+        return await service.create_organization(payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("", summary="Récupérer toutes les organisations")
 async def get_all_organizations(

@@ -21,3 +21,10 @@ class OrganizationRepository(OrganizationInterface):
         stmt = select(Organization).where(Organization.id == id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    # Créer une organisation
+    async def create_organization(self, organization:Organization):
+        self.db.add(organization)
+        await self.db.commit()
+        await self.db.refresh(organization)
+        return organization
