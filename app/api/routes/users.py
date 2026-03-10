@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.openapi.models import RequestBody
 
 from app.schemas.dtos.input.user_create_input import UserCreateInput
 from app.schemas.dtos.input.user_update_input import UserUpdateInput
@@ -15,7 +14,7 @@ async def create_user(
         service:UserService=Depends(get_user_service),
 ):
     try:
-        person = await service.create_user(
+        user = await service.create_user(
             first_names = payload.firstNames,
             last_name = payload.lastName,
             birth_date = payload.birthDate,
@@ -28,6 +27,10 @@ async def create_user(
             phone = payload.phone
         )
 
+        return UserOutput(
+            id=user.id,
+            email=user.email
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -97,8 +100,10 @@ async def update_user(
     try:
         user = await service.update_user(
             user_id,
-            payload.model_dump()    # Permet de convertir un modèle de données en un dictionnaire
+            payload.model_dump(exclude_unset=True)    # Permet de convertir un modèle de données en un dictionnaire
         )
+
+        return user
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -109,5 +114,6 @@ async def delete_user(
 ):
     try:
         user = await service.delete_user(user_id)
+        return user
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
