@@ -4,6 +4,7 @@ from sqlalchemy import select, and_
 from app.db.models.user_model import User
 from app.db.repositories.user.user_interface import UserInterface
 
+from typing import cast
 
 class UserRepository(UserInterface):
     def __init__(self, db:AsyncSession):
@@ -23,7 +24,7 @@ class UserRepository(UserInterface):
         return result.scalar_one_or_none()
 
     # Créer un utilisateur / Ajouter un utilisateur à la db
-    async def create(self, person:User):
+    async def create_user(self, person:User):
         # On ajoute l'objet dans la session
         self.db.add(person)
 
@@ -35,11 +36,22 @@ class UserRepository(UserInterface):
 
         return person
 
-    # Récupérer tous les utilisateurs
-    async def get_all(self):
+    # Récupérer tous les utilisateurs, avec ou sans filtres
+    async def get_users(self, filters: dict | None = None) -> list[User]:
         stmt = select(User)
+
+        if filters:
+            conditions = []
+
+            for key, value in filters.items():
+                if hasattr(User, key):
+                    conditions.append(getattr(User, key) == value)
+
+            if conditions:
+                stmt = stmt.where(and_(*conditions))
+
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        return cast(list[User], result.scalars().all())
 
     # Récupérer un utilisateur spécifique
     async def get_user_by_id(self, id_user:int):
@@ -78,18 +90,3 @@ class UserRepository(UserInterface):
         await self.db.delete(user)
         await self.db.commit()
         return user
-
-    # Récupérer les membres filtrés
-    async def get_users_filtered(self, filters:dict):
-        stmt = select(User)
-
-        if filters:
-            conditions=[]
-            for key, value in filters.items():
-                if hasattr(User, key):    # Vérifie que le champ existe dans le modèle
-                    conditions.append(getattr(User, key) == value)
-            if conditions:
-                stmt = stmt.where(and_(*conditions)) # Combine tous les filtres
-
-        result = await self.db.execute(stmt)
-        return result.scalars().all()

@@ -20,8 +20,8 @@ class UserService:
         self.repo = repo
 
     # Récupérer tous les utilisateurs
-    async def get_all_users(self):
-        users = await self.repo.get_all()
+    async def get_users(self, filters:dict):
+        users = await self.repo.get_users()
         if not users:
             raise ValueError("Users not found")
         return users
@@ -91,10 +91,3 @@ class UserService:
 
         # Retourner l'objet créé
         return created
-
-    # Récupérer les utilisateurs filtrés
-    async def get_users_filtered(self, filters:dict):
-        users = await self.repo.get_users_filtered(filters)
-        if not users:
-            raise ValueError("Users not found")
-        return users

@@ -40,11 +40,7 @@ async def get_users(
 ):
     try:
         filters = dict(request.query_params)
-
-        if filters:
-            users = await service.get_users_filtered(filters)
-        else:
-            users = await service.get_all_users()
+        users = await service.get_users(filters if filters else None)
 
         return [
             GetUserOutput(
