@@ -1,6 +1,4 @@
-from http.client import HTTPException
-
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 
 from app.schemas.dtos.output.organization_output import GetOrganizationOutput
 from app.services.organization_service import OrganizationService, get_organization_service
