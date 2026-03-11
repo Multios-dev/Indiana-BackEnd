@@ -13,30 +13,29 @@ class OrganizationRepository(OrganizationInterface):
     # Récupérer toutes les organisations
     async def get_all_organizations(self, filters:dict | None = None):
         stmt = select(Organization)
+        conditions=[]
 
         if filters:
-            conditions=[]
+            allowed_filters = {
+                "name",
+                "acronym",
+                "parent_id",
+                "email",
+                "phone",
+                "website",
+                "street",
+                "city",
+                "zip",
+                "country",
+                "legal_form",
+                "purpose",
+                "billable",
+                "type"
+            }
 
-        allowed_filters = {
-            "name",
-            "acronym",
-            "parent_id",
-            "email",
-            "phone",
-            "website",
-            "street",
-            "city",
-            "zip",
-            "country",
-            "legal_form",
-            "purpose",
-            "billable",
-            "type"
-        }
-
-        for key, value in filters.items():
-            if key in allowed_filters and hasattr(Organization, key):
-                conditions.append(getattr(Organization, key) == value)
+            for key, value in filters.items():
+                if key in allowed_filters and hasattr(Organization, key):
+                    conditions.append(getattr(Organization, key) == value)
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

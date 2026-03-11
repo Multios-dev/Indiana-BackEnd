@@ -12,21 +12,20 @@ class MembershipRepository(MembershipInterface):
 
     async def get_memberships(self, filters:dict | None = None):
         stmt = select(Membership)
+        conditions = []
 
         if filters:
-            conditions = []
+            allowed_filters = {
+                "user_id",
+                "organization_id",
+                "start_date",
+                "end_date",
+                "price"
+            }
 
-        allowed_filters = {
-            "user_id",
-            "organization_id",
-            "start_date",
-            "end_date",
-            "price"
-        }
-
-        for key, value in filters.items():
-            if key in allowed_filters and hasattr(Membership, key):
-                conditions.append(getattr(Membership, key) == value)
+            for key, value in filters.items():
+                if key in allowed_filters and hasattr(Membership, key):
+                    conditions.append(getattr(Membership, key) == value)
 
         if conditions:
             stmt = stmt.where(and_(*conditions))
