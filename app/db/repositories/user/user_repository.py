@@ -43,12 +43,26 @@ class UserRepository(UserInterface):
         if filters:
             conditions = []
 
-            for key, value in filters.items():
-                if hasattr(User, key):
-                    conditions.append(getattr(User, key) == value)
+        # Liste des champs filtrables
+        allowed_filters = {
+            "firstNames",
+            "lastNames",
+            "birthDate",
+            "gender",
+            "nationality",
+            "street",
+            "zip",
+            "city",
+            "email",
+            "phone"
+        }
 
-            if conditions:
-                stmt = stmt.where(and_(*conditions))
+        for key, value in filters.items():
+            if key in allowed_filters and hasattr(User, key):
+                conditions.append(getattr(User, key) == value)
+
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
 
         result = await self.db.execute(stmt)
         return cast(list[User], result.scalars().all())

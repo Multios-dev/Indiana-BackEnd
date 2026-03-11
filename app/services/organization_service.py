@@ -1,13 +1,13 @@
 from app.db.models.organization_model import Organization
+
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.dtos.input.create_organization_input import CreateOrganizationInput
-from app.schemas.dtos.input.update_organization_input import UpdateOrganizationInput
 
+from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, CreateOrganizationInput
 
 def get_organization_service(db:AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
@@ -18,8 +18,8 @@ class OrganizationService:
         self.repo = repo
 
     # Récupérer toutes les organisations
-    async def get_all_organizations(self):
-        organizations = await self.repo.get_all_organizations()
+    async def get_all_organizations(self, filters:dict | None = None):
+        organizations = await self.repo.get_all_organizations(filters)
         if not organizations:
             raise ValueError("No organizations found")
         return organizations

@@ -2,7 +2,7 @@ from app.db.models.organization_model import Organization
 from app.db.repositories.organization.organization_interface import OrganizationInterface
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
 class OrganizationRepository(OrganizationInterface):
     def __init__(self, db:AsyncSession):
@@ -11,8 +11,36 @@ class OrganizationRepository(OrganizationInterface):
         self.db = db
 
     # Récupérer toutes les organisations
-    async def get_all_organizations(self):
+    async def get_all_organizations(self, filters:dict | None = None):
         stmt = select(Organization)
+
+        if filters:
+            conditions=[]
+
+        allowed_filters = {
+            "name",
+            "acronym",
+            "parent_id",
+            "email",
+            "phone",
+            "website",
+            "street",
+            "city",
+            "zip",
+            "country",
+            "legal_form",
+            "purpose",
+            "billable",
+            "type"
+        }
+
+        for key, value in filters.items():
+            if key in allowed_filters and hasattr(Organization, key):
+                conditions.append(getattr(Organization, key) == value)
+
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
         result = await self.db.execute(stmt)
         return result.scalars().all()
 

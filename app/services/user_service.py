@@ -20,7 +20,7 @@ class UserService:
         self.repo = repo
 
     # Récupérer tous les utilisateurs
-    async def get_users(self, filters:dict):
+    async def get_users(self, filters:dict | None = None):
         users = await self.repo.get_users()
         if not users:
             raise ValueError("Users not found")

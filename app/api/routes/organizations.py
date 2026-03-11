@@ -17,17 +17,13 @@ async def create_organization(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("", summary="Récupérer toutes les organisations")
-async def get_all_organizations(
+async def get_organizations(
         request:Request,
         service: OrganizationService = Depends(get_organization_service)
 ):
     try:
         filters = dict(request.query_params)
-
-        if filters:
-            organizations = []
-        else:
-            organizations = await service.get_all_organizations()
+        organizations = await service.get_organizations(filters if filters else None)
 
         return [
             GetOrganizationOutput(
