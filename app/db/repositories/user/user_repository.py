@@ -40,10 +40,13 @@ class UserRepository(UserInterface):
     async def get_users(self, filters: dict | None = None) -> list[User]:
         stmt = select(User)
 
+        # Si les filtres sont fournis dans la requête, on initialise une liste vide
         if filters:
             conditions = []
 
-        # Liste des champs filtrables
+        # Liste des champs autorisés pour le filtrage
+        # Ca permet d'éviter que l'utilisateur puisse filtrer sur n'importe quelle coloonne
+        # ou sur un champ sensible (par ex, l'id)
         allowed_filters = {
             "firstNames",
             "lastNames",
@@ -57,14 +60,27 @@ class UserRepository(UserInterface):
             "phone"
         }
 
+        # Parcours de tous les filtres envoyés dans la requête
         for key, value in filters.items():
+
+            # Vérifie que le filtre est autorisé
+            # et que l'attribut existe réellement dans le modèle SQL
             if key in allowed_filters and hasattr(User, key):
+
+                # Construction dynamique d'une condition SQL
+                # ex : Organization.city == "Mons"
                 conditions.append(getattr(User, key) == value)
 
+        # Si au moins un condition existe
         if conditions:
+            # Application des conditions dans la requête SQL
+            # and_ permet de combiner plusieurs filtres
             stmt = stmt.where(and_(*conditions))
 
         result = await self.db.execute(stmt)
+
+        # scalars() récupère uniquement les objets Organization
+        # all transforme le résultat en liste Python
         return cast(list[User], result.scalars().all())
 
     # Récupérer un utilisateur spécifique
