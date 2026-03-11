@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 
 
-def get_organization_service(db:AsyncSession = Depends(get_db)):
+def get_membership_service(db:AsyncSession = Depends(get_db)):
     repo = MembershipRepository(db)
     return MembershipService(repo)
 
@@ -23,8 +23,8 @@ class MembershipService:
         return memberships
 
     # Récupérer un mandat spécifique
-    async def get_membership(self, membership_id:int) -> Membership:
-        membership = await self.repo.get_membership(membership_id)
+    async def get_membership_by_id(self, membership_id:int) -> Membership:
+        membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise ValueError("No membership found")
         return membership

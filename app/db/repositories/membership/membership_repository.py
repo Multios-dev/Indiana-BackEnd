@@ -35,7 +35,7 @@ class MembershipRepository(MembershipInterface):
         return result.scalars().all()
 
     # Récupérer un mandat spécifique
-    async def get_membership(self, membership_id:int):
+    async def get_membership_by_id(self, membership_id:int):
         stmt = select(Membership).where(Membership.id == membership_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()

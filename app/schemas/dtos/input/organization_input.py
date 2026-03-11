@@ -44,8 +44,6 @@ class UpdateOrganizationInput(BaseModel):
     zip: Optional[str] = None
     country: Optional[str] = None
 
-    identifiers: Optional[Dict[str, Any]] = None
-
     legal_form: Optional[str] = None
     purpose: Optional[str] = None
     billable: Optional[bool] = None

@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
 from app.schemas.dtos.output.membership_output import GetMembershipOutput
-from app.services.membership_service import MembershipService
+from app.services.membership_service import MembershipService, get_membership_service
 
 router = APIRouter(prefix="/memberships", tags=["memberships"])
 
 @router.get("", summary="Récupérer tous les mandats")
 async def get_memberships(
         request: Request,
-        service:MembershipService = Depends(MembershipService)
+        service:MembershipService = Depends(get_membership_service)
 ):
     try:
         filters=dict(request.query_params)
@@ -31,10 +31,10 @@ async def get_memberships(
 @router.get("/{membership_id}", summary="Récupérer un mandat spécifique")
 async def get_membership(
         membership_id: int,
-        service:MembershipService = Depends(MembershipService)
+        service:MembershipService = Depends(get_membership_service)
 ):
     try:
-        membership = await service.get_membership(membership_id)
+        membership = await service.get_membership_by_id(membership_id)
         return GetMembershipOutput(
             id = membership.id,
             user_id = membership.user_id,
