@@ -1,9 +1,20 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
+from app.schemas.dtos.input.membership_input import CreateMembershipInput
 from app.schemas.dtos.output.membership_output import GetMembershipOutput
 from app.services.membership_service import MembershipService, get_membership_service
 
 router = APIRouter(prefix="/memberships", tags=["memberships"])
+
+@router.post("", summary="Créer un mandat")
+async def create_membership(
+        payload: CreateMembershipInput,
+        service:MembershipService = Depends(get_membership_service)
+):
+    try:
+        return await service.create_membership(payload)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("", summary="Récupérer tous les mandats")
 async def get_memberships(

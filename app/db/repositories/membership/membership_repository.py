@@ -38,3 +38,10 @@ class MembershipRepository(MembershipInterface):
         stmt = select(Membership).where(Membership.id == membership_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    # Créer un mandat
+    async def create_membership(self, membership:Membership) ->Membership:
+        self.db.add(membership)
+        await self.db.commit()
+        await self.db.refresh(membership)
+        return membership
