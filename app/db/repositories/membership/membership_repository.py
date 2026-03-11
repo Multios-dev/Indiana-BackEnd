@@ -1,3 +1,5 @@
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_interface import MembershipInterface
 
@@ -40,8 +42,13 @@ class MembershipRepository(MembershipInterface):
         return result.scalar_one_or_none()
 
     # Créer un mandat
-    async def create_membership(self, membership:Membership) ->Membership:
-        self.db.add(membership)
-        await self.db.commit()
-        await self.db.refresh(membership)
-        return membership
+    async def create_membership(self, membership: Membership) -> Membership:
+        try:
+            self.db.add(membership)
+            await self.db.commit()
+            await self.db.refresh(membership)
+            return membership
+        except SQLAlchemyError as e:
+            await self.db.rollback()
+            print("DB ERROR:", e)
+            raise

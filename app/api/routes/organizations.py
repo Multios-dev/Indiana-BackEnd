@@ -23,7 +23,7 @@ async def get_organizations(
 ):
     try:
         filters = dict(request.query_params)
-        organizations = await service.get_organizations(filters if filters else None)
+        organizations = await service.get_all_organizations(filters if filters else None)
 
         return [
             GetOrganizationOutput(
