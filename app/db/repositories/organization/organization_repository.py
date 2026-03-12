@@ -57,9 +57,9 @@ class OrganizationRepository(OrganizationInterface):
         return organization
 
     # Modifier une organisation
-    async def update_organization(self, id_organization: int, data: dict):
+    async def update_organization(self, organization_id: int, data: dict):
         try:
-            stmt = select(Organization).where(Organization.id == id_organization)
+            stmt = select(Organization).where(Organization.id == organization_id)
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 
@@ -79,9 +79,9 @@ class OrganizationRepository(OrganizationInterface):
             raise
 
     # Supprimer une organisation
-    async def delete_organization(self, id_organization: int):
+    async def delete_organization(self, organization_id: int):
         try:
-            stmt = select(Organization).where(Organization.id == id_organization)
+            stmt = select(Organization).where(Organization.id == organization_id)
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 

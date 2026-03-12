@@ -62,7 +62,7 @@ class OrganizationService:
         return await self.repo.create_organization(organization)
 
     # Modifier une organisation
-    async def update_organization(self, id_organization: int, payload: UpdateOrganizationInput):
+    async def update_organization(self,organization_id: int, payload: UpdateOrganizationInput):
         data = payload.model_dump(exclude_unset=True)
 
         if not data:
@@ -79,18 +79,18 @@ class OrganizationService:
                 raise ValueError("Parent organization does not exist")
 
             # Empêcher une organisation d'être son propre parent
-            if data["parent_id"] == id_organization:
+            if data["parent_id"] == organization_id:
                 raise ValueError("An organization cannot be its own parent")
 
-        updated = await self.repo.update_organization(id_organization, data)
+        updated = await self.repo.update_organization(organization_id, data)
 
         if not updated:
             raise ValueError("Organization not found")
 
         return updated
 
-    async def delete_organization(self, id_organization: int):
-        deleted = await self.repo.delete_organization(id_organization)
+    async def delete_organization(self, organization_id: int):
+        deleted = await self.repo.delete_organization(organization_id)
         if not deleted:
             raise ValueError("Organization not found")
         return deleted

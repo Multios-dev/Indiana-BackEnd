@@ -82,14 +82,14 @@ class UserRepository(UserInterface):
         return result.scalars().all()
 
     # Récupérer un utilisateur spécifique
-    async def get_user_by_id(self, id_user:int):
-        stmt = select(User).where(User.id == id_user)
+    async def get_user_by_id(self, user_id:int):
+        stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     # Modifier les données d'un utilisateur
-    async def update_user(self, id_user:int, data:dict):
-        stmt = select(User).where(User.id == id_user)
+    async def update_user(self, user_id:int, data:dict):
+        stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
         user_found = result.scalar_one_or_none()
 
@@ -107,8 +107,8 @@ class UserRepository(UserInterface):
         return user_found
 
     # Supprimer un utilisateur
-    async def delete_user(self, id_user:int):
-        stmt = select(User).where(User.id == id_user)
+    async def delete_user(self, user_id:int):
+        stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
 
