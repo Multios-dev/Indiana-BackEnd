@@ -1,22 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional
 
 class GetOrganizationOutput(BaseModel):
     id: int
     name: str
-    acronym: Optional[str]
+    acronym:str | None = None
     type: str
 
-    parent_id: Optional[int]
+    parent_id:int | None = None
 
-    email: Optional[str]
-    phone: Optional[str]
-    website: Optional[str]
+    email:str | None = None
+    phone:str | None = None
+    website:str | None = None
 
-    street: Optional[str]
-    city: Optional[str]
-    zip: Optional[str]
-    country: Optional[str]
+    street:str | None = None
+    city:str| None = None
+    zip:str | None = None
+    country:str | None = None
 
     legal_form: str
     purpose: str

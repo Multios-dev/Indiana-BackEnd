@@ -3,8 +3,6 @@ from fastapi import Depends
 
 from datetime import date
 
-from typing import Optional
-
 from app.db.models.user_model import User
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
@@ -49,7 +47,7 @@ class AuthService:
             city:str,
             email:str,
             phone:str,
-            password: Optional[str] = None
+            password:str | None = None
     ) -> User:
 
         # Vérifier que l'email soit unique

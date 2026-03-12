@@ -8,8 +8,6 @@ from app.db.models.user_model import User
 
 from datetime import date
 
-from typing import Optional
-
 def get_user_service(db: AsyncSession = Depends(get_db)):
     repo = UserRepository(db)
     return UserService(repo)
@@ -60,7 +58,7 @@ class UserService:
             city: str,
             email: str,
             phone: str,
-            password: Optional[str] = None
+            password:str | None = None
     )-> User:
         # Vérifier que l'email soit unique
         existing = await self.repo.get_user_by_email(email)

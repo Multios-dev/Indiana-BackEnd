@@ -1,26 +1,24 @@
 from pydantic import BaseModel
-from typing import Optional
 from app.db.models.enums.organization_type import OrganizationType
 
 
 class CreateOrganizationInput(BaseModel):
 
     name: str
-    acronym: Optional[str] = None
-    logo: Optional[str] = None
+    acronym:str | None = None
+    logo:str | None = None
+    parent_id:int | None = None
 
-    parent_id: Optional[int] = None
+    email:str | None = None
+    phone:str | None = None
+    website:str | None = None
 
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
+    street:str | None = None
+    city:str | None = None
+    zip:str | None = None
+    country:str | None = None
 
-    street: Optional[str] = None
-    city: Optional[str] = None
-    zip: Optional[str] = None
-    country: Optional[str] = None
-
-    identifiers: Optional[dict] = None
+    identifiers:dict | None = None
 
     legal_form: str
     purpose: str
@@ -29,23 +27,23 @@ class CreateOrganizationInput(BaseModel):
     type: OrganizationType
 
 class UpdateOrganizationInput(BaseModel):
-    name: Optional[str] = None
-    acronym: Optional[str] = None
-    logo: Optional[str] = None
+    name:str | None = None
+    acronym:str | None = None
+    logo:str | None = None
 
-    parent_id: Optional[int] = None
+    parent_id:int | None = None
 
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
+    email:str | None = None
+    phone:str | None = None
+    website:str | None = None
 
-    street: Optional[str] = None
-    city: Optional[str] = None
-    zip: Optional[str] = None
-    country: Optional[str] = None
+    street:str | None = None
+    city:str | None = None
+    zip:str | None = None
+    country:str | None = None
 
-    legal_form: Optional[str] = None
-    purpose: Optional[str] = None
-    billable: Optional[bool] = None
+    legal_form:str | None = None
+    purpose:str | None = None
+    billable:bool | None = None
 
-    type: Optional[OrganizationType] = None
+    type:OrganizationType | None = None
