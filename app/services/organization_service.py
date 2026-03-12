@@ -52,7 +52,6 @@ class OrganizationService:
             city=payload.city,
             zip=payload.zip,
             country=payload.country,
-            identifiers=payload.identifiers,
             legal_form=payload.legal_form,
             purpose=payload.purpose,
             billable=payload.billable,

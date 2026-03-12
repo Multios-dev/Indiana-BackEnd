@@ -9,7 +9,7 @@ class Organization(Base):
     __tablename__ = "organizations"
 
     # Identification
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     acronym = Column(String, nullable=True)
     logo = Column(String, nullable=True)
@@ -27,11 +27,6 @@ class Organization(Base):
     city = Column(String, nullable=True)
     zip = Column(String, nullable=True)
     country = Column(String, nullable=True)
-
-    # Ensembles des identifiants officiels de l'organisation
-    # Comme ces identifiants varient selon le type d'organisation,
-    # ils sont stockés sous forme de JSON
-    identifiers = Column(JSONB, nullable=True)
 
     # Forme légale de l'organisation
     legal_form = Column(String, nullable=False)

@@ -4,7 +4,7 @@ from app.db.base import Base
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     firstNames = Column(JSON, nullable=False)
     lastName = Column(String, nullable=False)
