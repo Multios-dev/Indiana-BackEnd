@@ -1,6 +1,5 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Optional
 from decimal import Decimal
 
 class CreateMembershipInput(BaseModel):
@@ -8,8 +7,8 @@ class CreateMembershipInput(BaseModel):
     organization_id: int
     role:str
     start_date: datetime
-    end_date: Optional[datetime] | None = None
-    price: Optional[Decimal] | None = None
+    end_date: datetime | None = None
+    price: Decimal | None = None
 
 class UpdateMembershipInput(BaseModel):
     user_id:int | None = None
@@ -17,4 +16,4 @@ class UpdateMembershipInput(BaseModel):
     role:str | None = None
     start_date: datetime | None = None
     end_date: datetime | None = None
-    price: Optional[Decimal] | None = None
+    price: Decimal | None = None

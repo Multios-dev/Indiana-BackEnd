@@ -20,6 +20,7 @@ class MembershipRepository(MembershipInterface):
             allowed_filters = {
                 "user_id",
                 "organization_id",
+                "role",
                 "start_date",
                 "end_date",
                 "price"

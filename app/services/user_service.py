@@ -21,7 +21,7 @@ class UserService:
 
     # Récupérer tous les utilisateurs
     async def get_users(self, filters:dict | None = None):
-        users = await self.repo.get_users()
+        users = await self.repo.get_users(filters)
         if not users:
             raise ValueError("Users not found")
         return users
@@ -87,7 +87,7 @@ class UserService:
         )
 
         # Ajout à la DB via le repo
-        created = await self.repo.create(person)
+        created = await self.repo.create_user(person)
 
         # Retourner l'objet créé
         return created

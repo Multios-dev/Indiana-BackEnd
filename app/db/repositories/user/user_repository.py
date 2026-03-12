@@ -4,8 +4,6 @@ from sqlalchemy import select, and_
 from app.db.models.user_model import User
 from app.db.repositories.user.user_interface import UserInterface
 
-from typing import cast
-
 class UserRepository(UserInterface):
     def __init__(self, db:AsyncSession):
         # On garde une référence à la session db
@@ -49,7 +47,7 @@ class UserRepository(UserInterface):
         if filters:
             allowed_filters = {
                 "firstNames",
-                "lastNames",
+                "lastName",
                 "birthDate",
                 "gender",
                 "nationality",

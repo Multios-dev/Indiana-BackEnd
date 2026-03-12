@@ -27,14 +27,15 @@ async def get_memberships(
 
         return [
             GetMembershipOutput(
-                id = membership.id,
-                user_id = membership.id,
-                organization_id = membership.organization_id,
-                start_date = membership.start_date,
-                end_date = membership.end_date,
-                price = membership.price
+                id = m.id,
+                user_id = m.user_id,
+                role = m.role,
+                organization_id = m.organization_id,
+                start_date = m.start_date,
+                end_date = m.end_date,
+                price = m.price
             )
-            for membership in memberships
+            for m in memberships
         ]
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -50,6 +51,7 @@ async def get_membership(
             id = membership.id,
             user_id = membership.user_id,
             organization_id = membership.organization_id,
+            role = membership.role,
             start_date = membership.start_date,
             end_date = membership.end_date,
             price = membership.price

@@ -14,7 +14,7 @@ class Membership(Base):
     role = Column(String, nullable=False)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=True)
-    price = Column(Numeric(10,2), nullable=False)
+    price = Column(Numeric(10,2), nullable=True)
 
     user = relationship("User")
     organization = relationship("Organization")
