@@ -14,3 +14,6 @@ class MembershipInterface(ABC):
     # Créer un mandat
     @abstractmethod
     async def create_membership(self, membership:Membership)->Membership:...
+    # Modifier un mandat
+    @abstractmethod
+    async def update_membership(self, membership_id:int)->Membership:...

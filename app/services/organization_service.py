@@ -62,7 +62,6 @@ class OrganizationService:
         return await self.repo.create_organization(organization)
 
     # Modifier une organisation
-    # Modifier une organisation
     async def update_organization(self, id_organization: int, payload: UpdateOrganizationInput):
         data = payload.model_dump(exclude_unset=True)
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
-from app.schemas.dtos.input.membership_input import CreateMembershipInput
+from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 from app.schemas.dtos.output.membership_output import GetMembershipOutput
 from app.services.membership_service import MembershipService, get_membership_service
 
@@ -54,5 +54,16 @@ async def get_membership(
             end_date = membership.end_date,
             price = membership.price
         )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.put("/{membership_id}", summary="Modifier un mandat")
+async def update_membership(
+        membership_id: int,
+        payload: UpdateMembershipInput,
+        service:MembershipService = Depends(get_membership_service)
+):
+    try:
+        return await service.update_membership(membership_id, payload)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

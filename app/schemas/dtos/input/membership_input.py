@@ -10,3 +10,11 @@ class CreateMembershipInput(BaseModel):
     start_date: datetime
     end_date: Optional[datetime] | None = None
     price: Optional[Decimal] | None = None
+
+class UpdateMembershipInput(BaseModel):
+    user_id:int | None = None
+    organization_id: int | None = None
+    role:str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    price: Optional[Decimal] | None = None

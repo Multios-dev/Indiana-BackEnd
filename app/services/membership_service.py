@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.dtos.input.membership_input import CreateMembershipInput
+from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 
 from datetime import datetime
 
@@ -57,3 +57,16 @@ class MembershipService:
             price=payload.price
         )
         return await self.repo.create_membership(membership)
+
+    async def update_membership(self, membership_id:int, payload:UpdateMembershipInput):
+        data = payload.model_dump(exclude_unset=True)
+
+        if not data:
+            raise ValueError("No data found")
+
+        updated = await self.repo.update_membership(membership_id, data)
+
+        if not updated:
+            raise ValueError("No updated membership found")
+
+        return updated

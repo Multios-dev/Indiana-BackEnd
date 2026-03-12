@@ -52,3 +52,25 @@ class MembershipRepository(MembershipInterface):
             await self.db.rollback()
             print("DB ERROR:", e)
             raise
+
+    # Modifier un mandat
+    async def update_membership(self, membership_id:int, data:dict):
+        try:
+            stmt = select(Membership).where(Membership.id == membership_id)
+            result = await self.db.execute(stmt)
+            membership_found = result.scalar_one_or_none()
+
+            if not membership_found:
+                return None
+
+            for key, value in data.items():
+                if key != "id" and hasattr(membership_found, key):
+                    setattr(membership_found, key, value)
+
+            await self.db.commit()
+            await self.db.refresh(membership_found)
+            return membership_found
+
+        except Exception:
+            await self.db.rollback()
+            raise
