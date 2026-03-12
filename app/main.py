@@ -5,9 +5,13 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as user_router
 from app.api.routes.organizations import router as organization_router
 from app.api.routes.memberships import router as memberships_router
+from app.core.exceptions import AppException
+from app.core.redis.exception_handlers import app_exception_handler
 
 # Création de l'application FastAPI
 app = FastAPI()
+
+app.add_exception_handler(AppException, app_exception_handler)
 
 # Middleware CORS
 app.add_middleware(
