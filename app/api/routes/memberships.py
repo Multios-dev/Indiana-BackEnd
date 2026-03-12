@@ -67,3 +67,13 @@ async def update_membership(
         return await service.update_membership(membership_id, payload)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.delete("/{membership_id}", summary="Supprimer un mandat")
+async def delete_membership(
+        membership_id: int,
+        service:MembershipService = Depends(get_membership_service)
+):
+    try:
+        return await service.delete_membership(membership_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))

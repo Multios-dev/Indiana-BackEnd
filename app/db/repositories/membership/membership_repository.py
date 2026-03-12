@@ -74,3 +74,20 @@ class MembershipRepository(MembershipInterface):
         except Exception:
             await self.db.rollback()
             raise
+
+    # Supprimer un mandat
+    async def delete_membership(self, membership_id:int)->None:
+        try:
+            stmt = select(Membership).where(Membership.id == membership_id)
+            result = await self.db.execute(stmt)
+            membership_found = result.scalar_one_or_none()
+
+            if not membership_found:
+                return None
+
+            await self.db.delete(membership_found)
+            await self.db.commit()
+            return membership_found
+        except Exception:
+            await self.db.rollback()
+            raise

@@ -70,3 +70,9 @@ class MembershipService:
             raise ValueError("No updated membership found")
 
         return updated
+
+    async def delete_membership(self, membership_id:int):
+        deleted = await self.repo.delete_membership(membership_id)
+        if not deleted:
+            raise ValueError("No deleted membership found")
+        return deleted
