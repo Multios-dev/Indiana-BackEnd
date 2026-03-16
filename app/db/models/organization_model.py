@@ -19,4 +19,4 @@ class Organization(Base):
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
 
     parent = relationship("Organization", remote_side=[id])
-    contact = relationship("Contact")
+    contact = relationship("Contact", cascade="all, delete")

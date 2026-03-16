@@ -15,4 +15,5 @@ class User(Base):
     quali = Column(String, nullable = True)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)
     contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=True)
-    contact = relationship("Contact")
+
+    contact = relationship("Contact", cascade="all, delete")
