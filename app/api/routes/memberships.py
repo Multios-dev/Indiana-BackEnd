@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends
 
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 from app.schemas.dtos.output.membership_output import MembershipOutput
@@ -11,34 +11,25 @@ async def create_membership(
         payload: CreateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):
-    try:
-        membership = await service.create_membership(payload)
-        return MembershipOutput.model_validate(membership)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    membership = await service.create_membership(payload)
+    return MembershipOutput.model_validate(membership)
 
 @router.get("", summary="Récupérer tous les mandats")
 async def get_memberships(
         request: Request,
         service: MembershipService = Depends(get_membership_service)
 ):
-    try:
-        filters = dict(request.query_params)
-        memberships = await service.get_memberships(filters if filters else None)
-        return [MembershipOutput.model_validate(m) for m in memberships]
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    filters = dict(request.query_params)
+    memberships = await service.get_memberships(filters if filters else None)
+    return [MembershipOutput.model_validate(m) for m in memberships]
 
 @router.get("/{membership_id}", summary="Récupérer un mandat spécifique")
 async def get_membership(
         membership_id: int,
         service: MembershipService = Depends(get_membership_service)
 ):
-    try:
-        membership = await service.get_membership_by_id(membership_id)
-        return MembershipOutput.model_validate(membership)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    membership = await service.get_membership_by_id(membership_id)
+    return MembershipOutput.model_validate(membership)
 
 @router.put("/{membership_id}", summary="Modifier un mandat")
 async def update_membership(
@@ -46,22 +37,13 @@ async def update_membership(
         payload: UpdateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):
-    try:
-        membership = await service.update_membership(membership_id, payload)
-        return MembershipOutput.model_validate(membership)
-    except ValueError as e:
-        message = str(e)
-        if message == "Membership not found":
-            raise HTTPException(status_code=404, detail=message)
-        raise HTTPException(status_code=400, detail=message)
+    membership = await service.update_membership(membership_id, payload)
+    return MembershipOutput.model_validate(membership)
 
 @router.delete("/{membership_id}", summary="Supprimer un mandat")
 async def delete_membership(
         membership_id: int,
         service: MembershipService = Depends(get_membership_service)
 ):
-    try:
-        membership = await service.delete_membership(membership_id)
-        return MembershipOutput.model_validate(membership)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    membership = await service.delete_membership(membership_id)
+    return MembershipOutput.model_validate(membership)
