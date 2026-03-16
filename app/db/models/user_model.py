@@ -14,6 +14,6 @@ class User(Base):
     totem = Column(String, nullable = True)
     quali = Column(String, nullable = True)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=True)
+    contact_id = Column(Integer, ForeignKey('contacts.id', ondelete="CASCADE"), nullable=True)
 
-    contact = relationship("Contact", cascade="all, delete")
+    contact = relationship("Contact", cascade="all, delete", passive_deletes=True)

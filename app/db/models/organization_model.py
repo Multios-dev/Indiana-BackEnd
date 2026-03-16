@@ -16,7 +16,7 @@ class Organization(Base):
     is_legal_entity = Column(Boolean, nullable=False, default=False)
 
     parent_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
-    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
+    contact_id = Column(Integer, ForeignKey("contacts.id", ondelete="CASCADE"), nullable=True)
 
     parent = relationship("Organization", remote_side=[id])
-    contact = relationship("Contact", cascade="all, delete")
+    contact = relationship("Contact", cascade="all, delete", passive_deletes=True)
