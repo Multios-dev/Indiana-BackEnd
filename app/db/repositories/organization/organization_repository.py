@@ -20,17 +20,11 @@ class OrganizationRepository(OrganizationInterface):
                 "name",
                 "acronym",
                 "parent_id",
-                "email",
-                "phone",
-                "website",
-                "street",
-                "city",
-                "zip",
-                "country",
-                "legal_form",
                 "purpose",
+                "org_type",
+                "sgp_type",
                 "billable",
-                "type"
+                "is_legal_entity",
             }
 
             for key, value in filters.items():
