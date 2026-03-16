@@ -22,8 +22,7 @@ class MembershipRepository(MembershipInterface):
                 "organization_id",
                 "role",
                 "start_date",
-                "end_date",
-                "price"
+                "end_date"
             }
 
             for key, value in filters.items():
