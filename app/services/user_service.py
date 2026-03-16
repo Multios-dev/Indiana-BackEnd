@@ -10,10 +10,8 @@ from datetime import date
 
 from app.core.exceptions import (
     UserNotFoundError,
-    MembershipNotFoundError,
-    OrganizationNotFoundError,
-    InvalidDateRangeError,
-    EmptyUpdatePayloadError
+    EmptyUpdatePayloadError,
+    DatabaseError
 )
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
@@ -41,6 +39,8 @@ class UserService:
 
     # Modifier les données d'un utilisateur
     async def update_user(self, user_id, data:dict):
+        if not data:
+            raise EmptyUpdatePayloadError()
         updated_user = await self.repo.update_user(user_id, data)
         if not updated_user:
             raise UserNotFoundError()
@@ -50,7 +50,7 @@ class UserService:
     async def delete_user(self, user_id):
         deleted_user = await self.repo.delete_user(user_id)
         if not deleted_user:
-            UserNotFoundError()
+            raise UserNotFoundError()
         return deleted_user
 
     # Créer un utilisateur
@@ -64,14 +64,16 @@ class UserService:
             quali: str | None = None,
             is_legal_guardian: bool = False,
     ) -> User:
-        person = User(
-            first_names=first_names,
-            last_name=last_name,
-            birth_date=birth_date,
-            gender=gender,
-            totem=totem,
-            quali=quali,
-            is_legal_guardian=is_legal_guardian,
-        )
-
-        return await self.repo.create_user(person)
+        try:
+            person = User(
+                first_names=first_names,
+                last_name=last_name,
+                birth_date=birth_date,
+                gender=gender,
+                totem=totem,
+                quali=quali,
+                is_legal_guardian=is_legal_guardian,
+            )
+            return await self.repo.create_user(person)
+        except Exception as e:
+            raise DatabaseError()

@@ -9,6 +9,15 @@ from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 
+from app.core.exceptions import (
+    MembershipNotFoundError,
+    UserNotFoundError,
+    OrganizationNotFoundError,
+    InvalidDateRangeError,
+    EmptyUpdatePayloadError,
+    DatabaseError,
+)
+
 def get_membership_service(db: AsyncSession = Depends(get_db)):
     repo = MembershipRepository(db)
     user_repo = UserRepository(db)
@@ -29,61 +38,64 @@ class MembershipService:
     async def get_memberships(self, filters: dict | None = None) -> list[Membership]:
         memberships = await self.repo.get_memberships(filters)
         if not memberships:
-            raise ValueError("No memberships found")
+            raise MembershipNotFoundError()
         return memberships
 
     async def get_membership_by_id(self, membership_id: int) -> Membership:
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
-            raise ValueError("No membership found")
+            raise MembershipNotFoundError()
         return membership
 
     async def create_membership(self, payload: CreateMembershipInput) -> Membership:
         user = await self.repo_user.get_user_by_id(payload.user_id)
         if not user:
-            raise ValueError("User not found")
+            raise UserNotFoundError()
 
         organization = await self.repo_organization.get_organization_by_id(payload.organization_id)
         if not organization:
-            raise ValueError("Organization not found")
+            raise OrganizationNotFoundError()
 
         if payload.end_date is not None and payload.end_date < payload.start_date:
-            raise ValueError("End date cannot be earlier than start date")
+            raise InvalidDateRangeError()
 
-        membership = Membership(
-            user_id=payload.user_id,
-            organization_id=payload.organization_id,
-            role=payload.role,
-            start_date=payload.start_date,
-            end_date=payload.end_date,
-            price_excl_vat=payload.price_excl_vat,
-            discount=payload.discount,
-            price_incl_vat=payload.price_incl_vat,
-        )
-        return await self.repo.create_membership(membership)
+        try:
+            membership = Membership(
+                user_id=payload.user_id,
+                organization_id=payload.organization_id,
+                role=payload.role,
+                start_date=payload.start_date,
+                end_date=payload.end_date,
+                price_excl_vat=payload.price_excl_vat,
+                discount=payload.discount,
+                price_incl_vat=payload.price_incl_vat,
+            )
+            return await self.repo.create_membership(membership)
+        except Exception:
+            raise DatabaseError()
 
     async def update_membership(self, membership_id: int, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
-            raise ValueError("Membership not found")
+            raise MembershipNotFoundError()
 
         data = payload.model_dump(exclude_unset=True)
         if not data:
-            raise ValueError("No data found")
+            raise EmptyUpdatePayloadError()
 
         new_start_date = data.get("start_date", membership.start_date)
         new_end_date = data.get("end_date", membership.end_date)
 
         if new_end_date and new_end_date < new_start_date:
-            raise ValueError("End date cannot be before start date")
+            raise InvalidDateRangeError()
 
         updated = await self.repo.update_membership(membership_id, data)
         if not updated:
-            raise ValueError("No updated membership found")
+            raise MembershipNotFoundError()
         return updated
 
     async def delete_membership(self, membership_id: int):
         deleted = await self.repo.delete_membership(membership_id)
         if not deleted:
-            raise ValueError("No deleted membership found")
+            raise MembershipNotFoundError()
         return deleted
