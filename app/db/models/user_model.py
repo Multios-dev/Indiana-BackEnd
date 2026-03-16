@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, JSON, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
+from app.db.models.contact_model import Contact
 
 class User(Base):
     __tablename__ = "users"

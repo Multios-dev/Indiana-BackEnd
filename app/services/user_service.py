@@ -56,44 +56,22 @@ class UserService:
     # Créer un utilisateur
     async def create_user(
             self,
-            first_names:list[str],
+            first_names: list[str],
             last_name: str,
-            birth_date: date,
-            gender: str,
-            nationality: str,
-            street: str,
-            zip_code: str,
-            city: str,
-            email: str,
-            phone: str,
-            password:str | None = None
-    )-> User:
-        # Vérifier que l'email soit unique
-        existing = await self.repo.get_user_by_email(email)
-        if existing:
-            # Pour l'instant, on relève une erreur simple
-            # Plus tard, l'API convertira ça en HTTP 409
-            raise ValueError("Email already exists")
-
-        # Création de l'objet SQLAlchemy (Person) car SQLAlchemy persiste des modèles ORM, pas des DTO
+            birth_date: date | None = None,
+            gender: str | None = None,
+            totem: str | None = None,
+            quali: str | None = None,
+            is_legal_guardian: bool = False,
+    ) -> User:
         person = User(
-            firstNames = first_names,
-            lastName = last_name,
-            birthDate = birth_date,
-            gender = gender,
-            nationality = nationality,
-            street = street,
-            zip = zip_code,
-            city = city,
-            email = email,
-            phone = phone,
-
-            # Temporaire : pas de hash, on stocke le mdp tel quel
-            password_hash = password
+            first_names=first_names,
+            last_name=last_name,
+            birth_date=birth_date,
+            gender=gender,
+            totem=totem,
+            quali=quali,
+            is_legal_guardian=is_legal_guardian,
         )
 
-        # Ajout à la DB via le repo
-        created = await self.repo.create_user(person)
-
-        # Retourner l'objet créé
-        return created
+        return await self.repo.create_user(person)

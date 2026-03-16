@@ -2,18 +2,14 @@ from pydantic import BaseModel
 from datetime import date
 
 class UserOutput(BaseModel):
-    id:int
-    email:str
+    id: int
+    first_names: list[str]
+    last_name: str
+    birth_date: date | None
+    gender: str | None
+    totem: str | None
+    quali: str | None
+    is_legal_guardian: bool
 
-class GetUserOutput(BaseModel):
-    id:int
-    firstNames:list[str]
-    lastName:str
-    birthDate:date
-    gender:str
-    nationality:str
-    street:str
-    zip:str
-    city:str
-    email:str
-    phone:str
+    class Config:
+        from_attributes = True

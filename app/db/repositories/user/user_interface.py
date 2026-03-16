@@ -5,9 +5,6 @@ from app.db.models.user_model import User
 
 
 class UserInterface(ABC):
-    # Récupérer une personne par son email
-    @abstractmethod
-    async def get_user_by_email(self, email: str) -> User | None: ...
     # Créer une personne (lors de l'inscription, par ex)
     @abstractmethod
     async def create_user(self, person: User) -> User: ...

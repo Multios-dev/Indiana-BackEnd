@@ -10,17 +10,6 @@ class UserRepository(UserInterface):
         # Cette session permettra d'exécuter les requêtes
         self.db = db
 
-    # Récupérer un utilisateur par son email
-    async def get_user_by_email(self, email: str):
-        # Construction de la requête
-        stmt = select(User).where(User.email == email)
-
-        # execute est async, donc il faut await
-        result = await self.db.execute(stmt)
-
-        # scalar_one_or_none renvoie l'objet Person ou None si aucune ligne
-        return result.scalar_one_or_none()
-
     # Créer un utilisateur / Ajouter un utilisateur à la db
     async def create_user(self, person:User):
         # On ajoute l'objet dans la session
@@ -46,16 +35,13 @@ class UserRepository(UserInterface):
         # ou sur un champ sensible (par ex, l'id)
         if filters:
             allowed_filters = {
-                "firstNames",
-                "lastName",
-                "birthDate",
+                "first_names",
+                "last_name",
+                "birth_date",
                 "gender",
-                "nationality",
-                "street",
-                "zip",
-                "city",
-                "email",
-                "phone"
+                "totem",
+                "quali",
+                "is_legal_guardian",
             }
 
             # Parcours de tous les filtres envoyés dans la requête

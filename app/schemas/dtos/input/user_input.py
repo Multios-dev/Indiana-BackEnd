@@ -1,42 +1,20 @@
 from pydantic import BaseModel
 from datetime import date
 
-class UserRegisterInput(BaseModel):
-    firstNames: list[str]
-    lastName:str
-    birthDate: date
-    gender:str
-    nationality:str
-    street:str
-    zip:str
-    city:str
-    email:str
-    phone:str
-
-class UserLoginInput(BaseModel):
-    email: str
-    password: str
+class UserCreateInput(BaseModel):
+    first_names: list[str]
+    last_name: str
+    birth_date: date | None = None
+    gender: str | None = None
+    totem: str | None = None
+    quali: str | None = None
+    is_legal_guardian: bool = False
 
 class UserUpdateInput(BaseModel):
-    firstNames: list[str]
-    lastName: str
-    birthDate: date
-    gender: str
-    nationality: str
-    street: str
-    zip: str
-    city: str
-    email: str
-    phone: str
-
-class UserCreateInput(BaseModel):
-    firstNames: list[str]
-    lastName:str
-    birthDate: date
-    gender:str
-    nationality:str
-    street:str
-    zip:str
-    city:str
-    email:str
-    phone:str
+    first_names: list[str] | None = None
+    last_name: str | None = None
+    birth_date: date | None = None
+    gender: str | None = None
+    totem: str | None = None
+    quali: str | None = None
+    is_legal_guardian: bool | None = None
