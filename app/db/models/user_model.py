@@ -13,4 +13,15 @@ class User(Base):
     quali = Column(String, nullable=True)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)
 
-    contact = relationship("Contact", back_populates="user", uselist=False, passive_deletes=True)
+    contact = relationship(
+        "Contact", back_populates="user",
+        uselist=False,
+        passive_deletes=True
+    )
+
+    memberships = relationship(
+        "Membership",
+        back_populates="user",
+        cascade="all, delete",
+        passive_deletes=True
+    )

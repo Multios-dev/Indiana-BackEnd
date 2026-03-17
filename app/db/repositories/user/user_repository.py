@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 
 from app.db.models.user_model import User
 from app.db.repositories.user.user_interface import UserInterface
@@ -25,7 +26,7 @@ class UserRepository(UserInterface):
 
     # Récupérer tous les utilisateurs, avec ou sans filtres
     async def get_users(self, filters: dict | None = None) -> list[User]:
-        stmt = select(User)
+        stmt = select(User).options(selectinload(User.contact))
 
         # Initialiser une liste vide
         conditions = []
@@ -69,13 +70,13 @@ class UserRepository(UserInterface):
 
     # Récupérer un utilisateur spécifique
     async def get_user_by_id(self, user_id:int):
-        stmt = select(User).where(User.id == user_id)
+        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     # Modifier les données d'un utilisateur
     async def update_user(self, user_id:int, data:dict):
-        stmt = select(User).where(User.id == user_id)
+        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user_found = result.scalar_one_or_none()
 
@@ -94,7 +95,7 @@ class UserRepository(UserInterface):
 
     # Supprimer un utilisateur
     async def delete_user(self, user_id:int):
-        stmt = select(User).where(User.id == user_id)
+        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
 

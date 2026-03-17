@@ -1,5 +1,7 @@
 from app.db.models.organization_model import Organization
+from app.db.models.contact_model import Contact
 from app.db.repositories.organization.organization_repository import OrganizationRepository
+from app.db.repositories.contact.contact_repository import ContactRepository
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,17 +11,20 @@ from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, C
 from app.core.exceptions import (
     OrganizationNotFoundError,
     EmptyUpdatePayloadError,
-    BadRequestError,
-    DatabaseError, InvalidParentOrganizationError, SelfParentOrganizationError,
+    DatabaseError,
+    InvalidParentOrganizationError,
+    SelfParentOrganizationError,
 )
 
 def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
-    return OrganizationService(repo)
+    contact_repo = ContactRepository(db)
+    return OrganizationService(repo, contact_repo)
 
 class OrganizationService:
-    def __init__(self, repo: OrganizationRepository):
+    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository):
         self.repo = repo
+        self.contact_repo = contact_repo
 
     async def get_all_organizations(self, filters: dict | None = None):
         organizations = await self.repo.get_all_organizations(filters)
@@ -51,15 +56,30 @@ class OrganizationService:
                 sgp_type=payload.sgp_type,
                 billable=payload.billable,
                 is_legal_entity=payload.is_legal_entity,
-                contact_id=payload.contact_id,
             )
-            return await self.repo.create_organization(organization)
+            created = await self.repo.create_organization(organization)
+
+            # Créer le contact si fourni
+            if payload.contact:
+                contact = Contact(
+                    email=payload.contact.email,
+                    phone=payload.contact.phone,
+                    website=payload.contact.website,
+                    org_id=created.id,
+                )
+                await self.contact_repo.create_contact(contact)
+                await self.repo.db.refresh(created)
+
+            return created
         except Exception:
             raise DatabaseError()
 
     async def update_organization(self, organization_id: int, payload: UpdateOrganizationInput):
-        data = payload.model_dump(exclude_unset=True)
+        organization = await self.repo.get_organization_by_id(organization_id)
+        if not organization:
+            raise OrganizationNotFoundError()
 
+        data = payload.model_dump(exclude_unset=True)
         if not data:
             raise EmptyUpdatePayloadError()
 
@@ -73,10 +93,31 @@ class OrganizationService:
             if data["parent_id"] == organization_id:
                 raise SelfParentOrganizationError()
 
-        updated = await self.repo.update_organization(organization_id, data)
-        if not updated:
-            raise OrganizationNotFoundError()
-        return updated
+        # Gérer le contact séparément
+        contact_data = data.pop("contact", None)
+
+        if contact_data:
+            if organization.contact:
+                # Modifier le contact existant
+                await self.contact_repo.update_contact(organization.contact.id, contact_data)
+            else:
+                # Créer un nouveau contact
+                contact = Contact(
+                    email=contact_data.get("email"),
+                    phone=contact_data.get("phone"),
+                    website=contact_data.get("website"),
+                    org_id=organization_id,
+                )
+                await self.contact_repo.create_contact(contact)
+
+        # Mettre à jour les champs de l'organisation
+        if data:
+            updated = await self.repo.update_organization(organization_id, data)
+            if not updated:
+                raise OrganizationNotFoundError()
+            return updated
+
+        return organization
 
     async def delete_organization(self, organization_id: int):
         deleted = await self.repo.delete_organization(organization_id)

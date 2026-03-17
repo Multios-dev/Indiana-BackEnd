@@ -11,16 +11,7 @@ async def create_user(
         payload: UserCreateInput,
         service: UserService = Depends(get_user_service),
 ):
-    user = await service.create_user(
-        first_names=payload.first_names,
-        last_name=payload.last_name,
-        birth_date=payload.birth_date,
-        gender=payload.gender,
-        totem=payload.totem,
-        quali=payload.quali,
-        is_legal_guardian=payload.is_legal_guardian,
-    )
-
+    user = await service.create_user(payload)
     # model_validate permet de convertir un objet SQLAlchemy en objet Pydantic
     return UserOutput.model_validate(user)
 
@@ -47,7 +38,7 @@ async def update_user(
         payload: UserUpdateInput,
         service: UserService = Depends(get_user_service),
 ):
-    user = await service.update_user(user_id, payload.model_dump(exclude_unset=True))
+    user = await service.update_user(user_id, payload)
     return UserOutput.model_validate(user)
 
 @router.delete("/{user_id}", summary="Supprimer un utilisateur")
