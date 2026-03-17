@@ -3,6 +3,7 @@ from app.db.repositories.organization.organization_interface import Organization
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 
 class OrganizationRepository(OrganizationInterface):
     def __init__(self, db:AsyncSession):
@@ -12,7 +13,7 @@ class OrganizationRepository(OrganizationInterface):
 
     # Récupérer toutes les organisations
     async def get_all_organizations(self, filters:dict | None = None):
-        stmt = select(Organization)
+        stmt = select(Organization).options(selectinload(Organization.contact))
         conditions=[]
 
         if filters:
@@ -39,7 +40,7 @@ class OrganizationRepository(OrganizationInterface):
 
     # Récupérer une organisation par son id
     async def get_organization_by_id(self, id:int):
-        stmt = select(Organization).where(Organization.id == id)
+        stmt = select(Organization).where(Organization.id == id).options(selectinload(Organization.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -75,7 +76,7 @@ class OrganizationRepository(OrganizationInterface):
     # Supprimer une organisation
     async def delete_organization(self, organization_id: int):
         try:
-            stmt = select(Organization).where(Organization.id == organization_id)
+            stmt = select(Organization).where(Organization.id == organization_id).options(selectinload(Organization.contact))
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 

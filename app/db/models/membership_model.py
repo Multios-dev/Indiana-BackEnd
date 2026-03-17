@@ -9,7 +9,7 @@ class Membership(Base):
 
     # Clés étrangères
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
 
     role = Column(String, nullable=False)
     start_date = Column(Date, nullable=False)
@@ -17,4 +17,4 @@ class Membership(Base):
     price = Column(Numeric(10,2), nullable=True)
 
     user = relationship("User", back_populates="memberships")
-    organization = relationship("Organization")
+    organization = relationship("Organization", back_populates="memberships")

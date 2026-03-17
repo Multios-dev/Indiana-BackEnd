@@ -13,7 +13,34 @@ class Organization(Base):
     sgp_type = Column(String, nullable=True)
     billable = Column(Boolean, nullable=False, default=False)
     is_legal_entity = Column(Boolean, nullable=False, default=False)
-    parent_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
+    parent_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True)
 
-    parent = relationship("Organization", remote_side=[id])
-    contact = relationship("Contact", back_populates="organization", uselist=False, passive_deletes=True)
+    # Relation vers le parent
+    parent = relationship(
+        "Organization",
+        remote_side=[id],
+        back_populates="children"
+    )
+
+    # Relation vers les enfants
+    children = relationship(
+        "Organization",
+        back_populates="parent",
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    # Contact lié à l'organisation
+    contact = relationship(
+        "Contact",
+        back_populates="organization",
+        uselist=False,
+        passive_deletes=True
+    )
+
+    memberships = relationship(
+        "Membership",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
