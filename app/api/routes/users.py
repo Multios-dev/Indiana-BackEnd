@@ -6,7 +6,7 @@ from app.services.user_service import UserService, get_user_service
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("", summary="Créer un utilisateur")
+@router.post("/", summary="Créer un utilisateur")
 async def create_user(
         payload: UserCreateInput,
         service: UserService = Depends(get_user_service),

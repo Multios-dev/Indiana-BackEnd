@@ -66,9 +66,7 @@ class MembershipService:
                 role=payload.role,
                 start_date=payload.start_date,
                 end_date=payload.end_date,
-                price_excl_vat=payload.price_excl_vat,
-                discount=payload.discount,
-                price_incl_vat=payload.price_incl_vat,
+                price = payload.price
             )
             return await self.repo.create_membership(membership)
         except Exception:

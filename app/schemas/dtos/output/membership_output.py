@@ -9,8 +9,6 @@ class MembershipOutput(BaseModel):
     role: str
     start_date: date
     end_date: date | None = None
-    price_excl_vat: Decimal | None = None
-    discount: Decimal | None = None
-    price_incl_vat: Decimal | None = None
+    price: Decimal | None = None
 
     model_config = {"from_attributes": True}
