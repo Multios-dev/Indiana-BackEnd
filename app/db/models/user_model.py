@@ -1,8 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, JSON, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
-from app.db.models.contact_model import Contact
 
 class User(Base):
     __tablename__ = "users"
@@ -11,9 +9,8 @@ class User(Base):
     last_name = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
-    totem = Column(String, nullable = True)
-    quali = Column(String, nullable = True)
+    totem = Column(String, nullable=True)
+    quali = Column(String, nullable=True)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)
-    contact_id = Column(Integer, ForeignKey('contacts.id', ondelete="CASCADE"), nullable=True)
 
-    contact = relationship("Contact", cascade="all, delete", passive_deletes=True)
+    contact = relationship("Contact", back_populates="user", uselist=False, passive_deletes=True)
