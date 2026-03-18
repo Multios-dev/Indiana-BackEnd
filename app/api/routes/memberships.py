@@ -6,44 +6,39 @@ from app.services.membership_service import MembershipService, get_membership_se
 
 router = APIRouter(prefix="/memberships", tags=["memberships"])
 
-@router.post("/", summary="Créer un mandat")
+@router.post("/", response_model=MembershipOutput, summary="Créer un mandat")
 async def create_membership(
         payload: CreateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):
-    membership = await service.create_membership(payload)
-    return MembershipOutput.model_validate(membership)
+    return await service.create_membership(payload)
 
-@router.get("/", summary="Récupérer tous les mandats")
+@router.get("/", response_model=list[MembershipOutput], summary="Récupérer tous les mandats")
 async def get_memberships(
         request: Request,
         service: MembershipService = Depends(get_membership_service)
 ):
-    filters = dict(request.query_params)
-    memberships = await service.get_memberships(filters if filters else None)
-    return [MembershipOutput.model_validate(m) for m in memberships]
+    filters = dict(request.query_params) or None
+    return await service.get_memberships(filters)
 
-@router.get("/{membership_id}", summary="Récupérer un mandat spécifique")
+@router.get("/{membership_id}", response_model=MembershipOutput, summary="Récupérer un mandat spécifique")
 async def get_membership(
         membership_id: int,
         service: MembershipService = Depends(get_membership_service)
 ):
-    membership = await service.get_membership_by_id(membership_id)
-    return MembershipOutput.model_validate(membership)
+    return await service.get_membership_by_id(membership_id)
 
-@router.put("/{membership_id}", summary="Modifier un mandat")
+@router.put("/{membership_id}", response_model=MembershipOutput, summary="Modifier un mandat")
 async def update_membership(
         membership_id: int,
         payload: UpdateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):
-    membership = await service.update_membership(membership_id, payload)
-    return MembershipOutput.model_validate(membership)
+    return await service.update_membership(membership_id, payload)
 
-@router.delete("/{membership_id}", summary="Supprimer un mandat")
+@router.delete("/{membership_id}", response_model=MembershipOutput, summary="Supprimer un mandat")
 async def delete_membership(
         membership_id: int,
         service: MembershipService = Depends(get_membership_service)
 ):
-    membership = await service.delete_membership(membership_id)
-    return MembershipOutput.model_validate(membership)
+    return await service.delete_membership(membership_id)

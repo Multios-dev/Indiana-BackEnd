@@ -6,44 +6,39 @@ from app.services.organization_service import OrganizationService, get_organizat
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
-@router.post("", summary="Créer une organisation")
+@router.post("", response_model=OrganizationOutput, summary="Créer une organisation")
 async def create_organization(
         payload: CreateOrganizationInput,
         service: OrganizationService = Depends(get_organization_service)
 ):
-    org = await service.create_organization(payload)
-    return OrganizationOutput.model_validate(org)
+    return await service.create_organization(payload)
 
-@router.get("", summary="Récupérer toutes les organisations")
+@router.get("", response_model=list[OrganizationOutput], summary="Récupérer toutes les organisations")
 async def get_organizations(
         request: Request,
         service: OrganizationService = Depends(get_organization_service)
 ):
-    filters = dict(request.query_params)
-    organizations = await service.get_all_organizations(filters if filters else None)
-    return [OrganizationOutput.model_validate(o) for o in organizations]
+    filters = dict(request.query_params) or None
+    return await service.get_all_organizations(filters)
 
-@router.get("/{org_id}", summary="Récupérer une organisation spécifique")
+@router.get("/{org_id}", response_model=OrganizationOutput, summary="Récupérer une organisation spécifique")
 async def get_organization(
         org_id: int,
         service: OrganizationService = Depends(get_organization_service)
 ):
-    org = await service.get_organization_by_id(org_id)
-    return OrganizationOutput.model_validate(org)
+    return await service.get_organization_by_id(org_id)
 
-@router.put("/{org_id}", summary="Modifier une organisation")
+@router.put("/{org_id}", response_model=OrganizationOutput, summary="Modifier une organisation")
 async def update_organization(
         org_id: int,
         payload: UpdateOrganizationInput,
         service: OrganizationService = Depends(get_organization_service)
 ):
-    org = await service.update_organization(org_id, payload)
-    return OrganizationOutput.model_validate(org)
+    return await service.update_organization(org_id, payload)
 
-@router.delete("/{org_id}", summary="Supprimer une organisation")
+@router.delete("/{org_id}", response_model=OrganizationOutput, summary="Supprimer une organisation")
 async def delete_organization(
         org_id: int,
         service: OrganizationService = Depends(get_organization_service)
 ):
-    org = await service.delete_organization(org_id)
-    return OrganizationOutput.model_validate(org)
+    return await service.delete_organization(org_id)
