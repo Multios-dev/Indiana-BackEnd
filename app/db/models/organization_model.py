@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
+# Représente une organisation (unité, groupe, etc.)
 class Organization(Base):
     __tablename__ = "organizations"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -13,16 +14,25 @@ class Organization(Base):
     sgp_type = Column(String, nullable=True)
     billable = Column(Boolean, nullable=False, default=False)
     is_legal_entity = Column(Boolean, nullable=False, default=False)
-    parent_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True)
 
-    # Relation vers le parent
+    # Référence vers l'organisation parent
+    parent_id = Column(
+        Integer,
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=True
+    )
+
+    # -------------------------
+    # RELATIONS HIERARCHIQUES
+    # -------------------------
+    # Organisation parent
     parent = relationship(
         "Organization",
         remote_side=[id],
         back_populates="children"
     )
 
-    # Relation vers les enfants
+    # Sous-organisations
     children = relationship(
         "Organization",
         back_populates="parent",
@@ -30,7 +40,10 @@ class Organization(Base):
         passive_deletes=True
     )
 
-    # Contact lié à l'organisation
+    # -------------------------
+    # AUTRES RELATIONS
+    # -------------------------
+    # Contact de l'organisation
     contact = relationship(
         "Contact",
         back_populates="organization",
@@ -38,6 +51,7 @@ class Organization(Base):
         passive_deletes=True
     )
 
+    # Membres de l'organisation
     memberships = relationship(
         "Membership",
         back_populates="organization",

@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 
+# Représente l'appartenance d'un utilisateur à une organisation
 class Membership(Base):
     __tablename__ = "memberships"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -16,5 +17,17 @@ class Membership(Base):
     end_date = Column(Date, nullable=True)
     price = Column(Numeric(10,2), nullable=True)
 
-    user = relationship("User", back_populates="memberships")
-    organization = relationship("Organization", back_populates="memberships")
+    # -------------------------
+    # RELATIONS
+    # -------------------------
+    # Relation vers l'utilisateur
+    user = relationship(
+        "User",
+        back_populates="memberships"
+    )
+
+    # Relation vers l'organisation
+    organization = relationship(
+        "Organization",
+        back_populates="memberships"
+    )
