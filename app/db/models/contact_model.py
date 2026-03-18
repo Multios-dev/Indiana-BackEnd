@@ -31,11 +31,13 @@ class Contact(Base):
     # RELATIONS
     # -------------------------
     # Relation vers User
-    # back_populates="contact" correspond à Organisation.contact
+    # back_populates="contact" correspond à User.contact
     user = relationship(
         "User",
         back_populates="contact"
     )
+    # Relation vers Organization
+    # back_populates="contact" correspond à Organization.contact
     organization = relationship(
         "Organization",
         back_populates="contact"
