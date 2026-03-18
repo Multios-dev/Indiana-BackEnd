@@ -30,6 +30,8 @@ class MembershipNotFoundError(NotFoundError):
     detail = "Membership not found"
 class ContactNotFoundError(NotFoundError):
     detail = "Contact not found"
+class EventNotFoundError(NotFoundError):
+    detail = "Event not found"
 
 # ==============================
 # 400 - BAD REQUEST
