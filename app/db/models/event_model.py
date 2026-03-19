@@ -13,6 +13,7 @@ class Event(Base):
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
 
+    # Coordonnées géographiques
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 

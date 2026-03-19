@@ -39,3 +39,50 @@ class EventRepository(EventInterface):
         stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    # Créer un événement
+    async def create_event(self, event: Event):
+        self.db.add(event)
+        self.db.commit()
+        self.db.refresh(event)
+        return event
+
+    # Modifier un événement
+    async def update_event(self, event_id, data:dict):
+        try:
+            stmt = select(Event).where(Event.id == event_id)
+            result = await self.db.execute(stmt)
+            event_found = result.scalar_one_or_none()
+
+            if not event_found:
+                return None
+
+            for key, value in data.items():
+                if key != "id" and hasatt(event_found, key):
+                    setattr(event_found, key, value)
+
+            await self.db.commit()
+            await self.db.refresh(event_found)
+            return event_found
+
+        except Exception:
+            await self.db.rollback()
+            raise
+
+    # Supprimer une organisation
+    async def delete_event(self, event_id:int):
+        try:
+            stmt = select(Organization).where(Event.id == event_id).options(selectinload(Event.audiences))
+            result = await self.db.execute(stmt)
+            event_found = result.scalar_one_or_none()
+
+            if not event_found:
+                return None
+
+            await self.db.delete(event_found)
+            await self.db.commit()
+            return event_found
+
+        except Exception:
+            await self.db.rollback()
+            raise

@@ -51,6 +51,10 @@ class DuplicateOrganizationError(BadRequestError):
     detail = "Organization already exists"
 class DuplicateUserError(BadRequestError):
     detail = "User already exists"
+class InvalidParentEventError(BadRequestError):
+    detail = "Parent event does not exist"
+class SelfParentEventError(BadRequestError):
+    detail = "An event cannot be its own parent"
 
 # ==============================
 # 500 - SERVER ERROR
