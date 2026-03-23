@@ -12,17 +12,14 @@ class UserRepository(UserInterface):
         self.db = db
 
     # Créer un utilisateur / Ajouter un utilisateur à la db
-    async def create_user(self, person:User):
-        # On ajoute l'objet dans la session
+    async def create_user(self, person: User):
         self.db.add(person)
-
-        # On écrit dans la db
         await self.db.commit()
-
-        # refresh recharge l'objet dans la db
         await self.db.refresh(person)
 
-        return person
+        stmt = select(User).where(User.id == person.id).options(selectinload(User.contact))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     # Récupérer tous les utilisateurs, avec ou sans filtres
     async def get_users(self, filters: dict | None = None) -> list[User]:
