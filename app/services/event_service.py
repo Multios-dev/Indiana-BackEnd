@@ -111,4 +111,5 @@ class EventService:
         deleted_event = await self.repo.get_event_by_id(event_id)
         if not deleted_event:
             raise EventNotFoundError()
+        await self.repo.delete_event(event_id)
         return deleted_event

@@ -52,7 +52,7 @@ class EventRepository(EventInterface):
         return result.scalar_one()
 
     # Modifier un événement
-    async def update_event(self, event_id, data:dict):
+    async def update_event(self, event_id, data: dict):
         try:
             stmt = select(Event).where(Event.id == event_id)
             result = await self.db.execute(stmt)
@@ -66,8 +66,11 @@ class EventRepository(EventInterface):
                     setattr(event_found, key, value)
 
             await self.db.commit()
-            await self.db.refresh(event_found)
-            return event_found
+
+            # Recharger avec les audiences
+            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+            result = await self.db.execute(stmt)
+            return result.scalar_one()
 
         except Exception:
             await self.db.rollback()
