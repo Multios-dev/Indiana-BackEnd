@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repositories.event.event_interface import EventInterface
 
-from app.db.models.event_model import Event
+from app.db.models.event_model import Event, Audience
 
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, and_
@@ -43,9 +43,13 @@ class EventRepository(EventInterface):
     # Créer un événement
     async def create_event(self, event: Event):
         self.db.add(event)
-        self.db.commit()
-        self.db.refresh(event)
-        return event
+        await self.db.commit()
+        await self.db.refresh(event)
+
+        # Recharger avec les audiences
+        stmt = select(Event).where(Event.id == event.id).options(selectinload(Event.audiences))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     # Modifier un événement
     async def update_event(self, event_id, data:dict):
@@ -58,7 +62,7 @@ class EventRepository(EventInterface):
                 return None
 
             for key, value in data.items():
-                if key != "id" and hasatt(event_found, key):
+                if key != "id" and hasattr(event_found, key):
                     setattr(event_found, key, value)
 
             await self.db.commit()
@@ -72,7 +76,7 @@ class EventRepository(EventInterface):
     # Supprimer une organisation
     async def delete_event(self, event_id:int):
         try:
-            stmt = select(Organization).where(Event.id == event_id).options(selectinload(Event.audiences))
+            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
             result = await self.db.execute(stmt)
             event_found = result.scalar_one_or_none()
 
@@ -86,3 +90,8 @@ class EventRepository(EventInterface):
         except Exception:
             await self.db.rollback()
             raise
+
+    async def get_audiences_by_ids(self, audience_ids: list[int]):
+        stmt = select(Audience).where(Audience.id.in_(audience_ids))
+        result = await self.db.execute(stmt)
+        return result.scalars().all()

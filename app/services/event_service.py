@@ -6,11 +6,17 @@ from fastapi import Depends
 from app.db.repositories.event.event_repository import EventRepository
 from app.db.session import get_db
 from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput
-
+from datetime import datetime
 
 def get_event_service(db: AsyncSession = Depends(get_db)):
     repo = EventRepository(db)
     return EventService(repo)
+
+def make_naive(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    # Si le datetime a tzinfo, on le retire
+    return dt.replace(tzinfo=None)
 
 class EventService:
     def __init__(self, repo):
@@ -42,8 +48,8 @@ class EventService:
                 name = payload.name,
                 description = payload.description,
                 event_type = payload.event_type,
-                start_date = payload.start_date,
-                end_date = payload.end_date,
+                start_date = make_naive(payload.start_date),
+                end_date = make_naive(payload.end_date),
                 latitude = payload.latitude,
                 longitude = payload.longitude,
                 parent_id = parent_id
@@ -52,12 +58,17 @@ class EventService:
             # Gérer les audiences
             if payload.audiences:
                 audience_ids = [a.id for a in payload.audiences]
-                audiences = await self.repo.get_event_audiences_by_id(audience_ids)
+                audiences = await self.repo.get_audiences_by_ids(audience_ids)
                 event.audiences = audiences
-            return await self.repo.create_event(event)
+            result = await self.repo.create_event(event)
+            print("Service : ", result)
+            return result
 
-        except Exception:
-            raise DatabaseError()
+        except Exception as e:
+
+            print("ERROR:", e)
+
+            raise DatabaseError(str(e))
 
     async def update_event(self, event_id:int, payload:UpdateEventInput):
         event = await self.repo.get_event_by_id(event_id)
