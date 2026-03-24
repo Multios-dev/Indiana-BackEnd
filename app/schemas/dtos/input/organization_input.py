@@ -1,9 +1,27 @@
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, field_validator, EmailStr
+from app.db.models.enums.organization_type import OrganizationType
 
 class ContactInput(BaseModel):
-    email:str | None = None
+    email:EmailStr | None = None
     phone:str | None = None
     website:str | None = None
+
+    @field_validator("phone")
+    def validate_phone(cls, v):
+        if v is None:
+            return None
+        if not re.match(r"^\+?[0-9]{8,15}$", v):
+            raise ValueError("Invalid phone number")
+        return v
+    @field_validator("website")
+    def validate_website(cls, v):
+        if v is None:
+            return None
+        # Accepte http:// ou https://
+        if not re.match(r"^https?://", v):
+            raise ValueError("website must start with http:// or https://")
+        return v
 
 class CreateOrganizationInput(BaseModel):
     name: str
@@ -11,7 +29,7 @@ class CreateOrganizationInput(BaseModel):
     logo: str | None = None
     parent_id: int | None = None
     purpose: str
-    org_type: str
+    org_type: OrganizationType | None = None
     sgp_type: str | None = None
     billable: bool
     is_legal_entity: bool = False
@@ -23,7 +41,7 @@ class UpdateOrganizationInput(BaseModel):
     logo: str | None = None
     parent_id: int | None = None
     purpose: str | None = None
-    org_type: str | None = None
+    org_type: OrganizationType | None = None
     sgp_type: str | None = None
     billable: bool | None = None
     is_legal_entity: bool | None = None
