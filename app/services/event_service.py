@@ -19,7 +19,7 @@ def make_naive(dt: datetime | None) -> datetime | None:
     return dt.replace(tzinfo=None)
 
 class EventService:
-    def __init__(self, repo):
+    def __init__(self, repo:EventRepository):
         self.repo = repo
 
     async def get_all_events(self, filters:dict | None = None):
