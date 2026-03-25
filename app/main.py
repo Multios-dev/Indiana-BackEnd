@@ -9,12 +9,19 @@ from app.api.routes.events import router as events_router
 
 from app.core.exceptions import AppException
 from app.core.redis.exception_handlers import app_exception_handler
+from app.db.init_db import init_db
 from app.db.model_loader import load_all_models
+from app.db.session import engine
+from contextlib import asynccontextmanager
 
-load_all_models()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()  # startup
+    yield
+    await engine.dispose()
 
 # Création de l'application FastAPI
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_exception_handler(AppException, app_exception_handler)
 
