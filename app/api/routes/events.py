@@ -37,7 +37,7 @@ async def update_event(
 ):
     return await service.update_event(event_id, payload)
 
-@router.delete("/{event_id}", response_model=EventOutput, summary="Supprimer un événement")
+@router.delete("/{event_id}", status_code=200, response_model=dict, summary="Supprimer un événement")
 async def delete_event(
         event_id:int,
         service: EventService = Depends(get_event_service)

@@ -88,7 +88,7 @@ class EventRepository(EventInterface):
 
             await self.db.delete(event_found)
             await self.db.commit()
-            return event_found
+            return True
 
         except Exception:
             await self.db.rollback()
