@@ -82,7 +82,7 @@ class UserService:
         deleted = await self.repo.delete_user(user_id)
         if not deleted:
             raise UserNotFoundError()
-        return deleted
+        return {"message": "User deleted successfully"}
 
     # Créer un utilisateur
     async def create_user(self, payload: UserCreateInput) -> User:

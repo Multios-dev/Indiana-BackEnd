@@ -36,7 +36,7 @@ async def update_user(
 ):
     return await service.update_user(user_id, payload)
 
-@router.delete("/{user_id}", response_model=UserOutput, summary="Supprimer un utilisateur")
+@router.delete("/{user_id}", status_code=200, response_model=dict, summary="Supprimer un utilisateur")
 async def delete_user(
         user_id: int,
         service: UserService = Depends(get_user_service),

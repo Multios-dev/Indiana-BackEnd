@@ -101,4 +101,4 @@ class UserRepository(UserInterface):
 
         await self.db.delete(user)
         await self.db.commit()
-        return user
+        return True
