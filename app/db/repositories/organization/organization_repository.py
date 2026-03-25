@@ -89,7 +89,7 @@ class OrganizationRepository(OrganizationInterface):
 
             await self.db.delete(organization_found)
             await self.db.commit()
-            return organization_found
+            return True
         except Exception:
             await self.db.rollback()
             raise

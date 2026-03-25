@@ -68,7 +68,7 @@ class OrganizationService:
                     org_id=created.id,
                 )
                 await self.contact_repo.create_contact(contact)
-                await self.repo.db.refresh(created)
+                created = await self.repo.get_organization_by_id(created.id)  # ← recharge avec la relation contact
 
             return created
         except Exception:
@@ -123,4 +123,4 @@ class OrganizationService:
         deleted = await self.repo.delete_organization(organization_id)
         if not deleted:
             raise OrganizationNotFoundError()
-        return deleted
+        return {"message": "Organization deleted successfully"}
