@@ -39,10 +39,3 @@ app.include_router(user_router)
 app.include_router(organization_router)
 app.include_router(memberships_router)
 app.include_router(events_router)
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": traceback.format_exc()}
-    )
