@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String
 
 from app.db.base import Base
-
+# test
 class Address(Base):
     __tablename__ = "addresses"
     id = Column(Integer, primary_key=True, autoincrement=True)
