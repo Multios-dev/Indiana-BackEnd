@@ -96,4 +96,4 @@ class MembershipService:
         deleted = await self.repo.delete_membership(membership_id)
         if not deleted:
             raise MembershipNotFoundError()
-        return deleted
+        return { "message" : "Membership deleted successfully" }

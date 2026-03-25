@@ -87,7 +87,7 @@ class MembershipRepository(MembershipInterface):
 
             await self.db.delete(membership_found)
             await self.db.commit()
-            return membership_found
+            return True
         except Exception:
             await self.db.rollback()
             raise

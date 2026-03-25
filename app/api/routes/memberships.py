@@ -36,7 +36,7 @@ async def update_membership(
 ):
     return await service.update_membership(membership_id, payload)
 
-@router.delete("/{membership_id}", response_model=MembershipOutput, summary="Supprimer un mandat")
+@router.delete("/{membership_id}", status_code=200, response_model=dict, summary="Supprimer un mandat")
 async def delete_membership(
         membership_id: int,
         service: MembershipService = Depends(get_membership_service)
