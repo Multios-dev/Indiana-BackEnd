@@ -20,6 +20,13 @@ class ContactInput(BaseModel):
 
     # website pas inclus (les personnes n'ont pas de page web)
 
+class AddressInput(BaseModel):
+    box_number:str
+    street:str
+    post_name:str
+    post_code:str
+    country:str
+
 class UserCreateInput(BaseModel):
     # Liste de prénoms (au moins 1 prénom)
     first_names: list[str] = Field(..., min_length=1)
@@ -30,6 +37,8 @@ class UserCreateInput(BaseModel):
     quali: str | None = None
     is_legal_guardian: bool = False
     contact:ContactInput | None = None
+    home_address:AddressInput
+    residential_address:AddressInput | None = None
 
     @field_validator("birth_date")
     def validate_birth_date(cls, v):

@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import db
+from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from app.db.session import get_db
@@ -9,26 +9,28 @@ from app.db.session import get_db
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
 
-from datetime import date
-
 from app.core.exceptions import (
     UserNotFoundError,
     EmptyUpdatePayloadError,
     DatabaseError
 )
+from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 
+import traceback
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
     repo = UserRepository(db)
     contact_repo = ContactRepository(db)
-    return UserService(repo, contact_repo)
+    address_repo = AddressRepository(db)
+    return UserService(repo, contact_repo, address_repo)
 
 class UserService:
-    def __init__(self, repo:UserRepository, contact_repo:ContactRepository):
+    def __init__(self, repo:UserRepository, contact_repo:ContactRepository, address_repo:AddressRepository):
         # Injection du repository
         self.repo = repo
         self.contact_repo = contact_repo
+        self.address_repo = address_repo
 
     # Récupérer tous les utilisateurs
     async def get_users(self, filters:dict | None = None):
@@ -84,32 +86,39 @@ class UserService:
             raise UserNotFoundError()
         return {"message": "User deleted successfully"}
 
-    # Créer un utilisateur
+
     async def create_user(self, payload: UserCreateInput) -> User:
         try:
-            person = User(
-                first_names=payload.first_names,
-                last_name=payload.last_name,
-                birth_date=payload.birth_date,
-                gender=payload.gender,
-                totem=payload.totem,
-                quali=payload.quali,
-                is_legal_guardian=payload.is_legal_guardian,
-            )
-            created = await self.repo.create_user(person)
+            if payload.home_address:
+                home_address = UserMapper.to_address_entity(payload.home_address)
+                created_home = await self.address_repo.create_address(home_address)
+                home_id = created_home.id
+            else:
+                home_id = None
 
-            # Créer le contact si fourni
-            if payload.contact:
-                contact = Contact(
-                    email=payload.contact.email,
-                    phone=payload.contact.phone,
-                    user_id=created.id,
-                )
+            if payload.residential_address:
+                residential_address = UserMapper.to_address_entity(payload.residential_address)
+                created_residential = await self.address_repo.create_address(residential_address)
+                residential_id = created_residential.id
+            else:
+                residential_id = None
+
+            user_entity = UserMapper.to_user_entity(payload)
+            user_entity.home_address_id = home_id
+            user_entity.residential_address_id = residential_id
+            created_user = await self.repo.create_user(user_entity)
+
+            contact = UserMapper.to_contact_entity(payload, created_user.id)
+            if contact:
                 await self.contact_repo.create_contact(contact)
 
-            # Recharger le user avec ses relations
-            created = await self.repo.get_user_by_id(created.id)
+            return await self.repo.get_user_by_id(created_user.id)
 
-            return created
-        except Exception:
-            raise DatabaseError()
+        except Exception as e:
+
+
+            print("⚠️ DatabaseError:", e)
+
+            traceback.print_exc()
+
+            raise DatabaseError() from e

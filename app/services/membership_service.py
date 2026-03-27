@@ -1,3 +1,5 @@
+import traceback
+
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_repository import MembershipRepository
 
@@ -7,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
+from app.mappers.membership_mapper import MembershipMapper
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 
 from app.core.exceptions import (
@@ -60,17 +63,12 @@ class MembershipService:
             raise InvalidDateRangeError()
 
         try:
-            membership = Membership(
-                user_id=payload.user_id,
-                organization_id=payload.organization_id,
-                role=payload.role,
-                start_date=payload.start_date,
-                end_date=payload.end_date,
-                price = payload.price
-            )
+            membership = MembershipMapper.to_membership_entity(payload)
             return await self.repo.create_membership(membership)
-        except Exception:
-            raise DatabaseError()
+        except Exception as e:
+            print("DatabaseError : ", e)
+            traceback.print_exc()
+            raise DatabaseError() from e
 
     async def update_membership(self, membership_id: int, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)

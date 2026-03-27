@@ -1,3 +1,5 @@
+import traceback
+
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
 from app.db.repositories.organization.organization_repository import OrganizationRepository
@@ -6,6 +8,7 @@ from app.db.repositories.contact.contact_repository import ContactRepository
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
+from app.mappers.organization_mapper import OrganizationMapper
 from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, CreateOrganizationInput
 
 from app.core.exceptions import (
@@ -46,33 +49,19 @@ class OrganizationService:
                 raise InvalidParentOrganizationError()
 
         try:
-            organization = Organization(
-                name=payload.name,
-                acronym=payload.acronym,
-                logo=payload.logo,
-                parent_id=parent_id,
-                purpose=payload.purpose,
-                org_type=payload.org_type,
-                sgp_type=payload.sgp_type,
-                billable=payload.billable,
-                is_legal_entity=payload.is_legal_entity,
-            )
+            organization = OrganizationMapper.to_organization_entity(payload)
             created = await self.repo.create_organization(organization)
 
-            # Créer le contact si fourni
-            if payload.contact:
-                contact = Contact(
-                    email=payload.contact.email,
-                    phone=payload.contact.phone,
-                    website=payload.contact.website,
-                    org_id=created.id,
-                )
+            contact = OrganizationMapper.to_contact_entity(payload, created.id)
+            if contact:
                 await self.contact_repo.create_contact(contact)
-                created = await self.repo.get_organization_by_id(created.id)  # ← recharge avec la relation contact
+                created = await self.repo.get_organization_by_id(created.id)
 
             return created
-        except Exception:
-            raise DatabaseError()
+        except Exception as e:
+            print ("DatabaseError : ", e)
+            traceback.print_exc()
+            raise DatabaseError() from e
 
     async def update_organization(self, organization_id: int, payload: UpdateOrganizationInput):
         organization = await self.repo.get_organization_by_id(organization_id)

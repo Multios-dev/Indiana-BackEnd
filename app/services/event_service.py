@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from app.db.repositories.event.event_repository import EventRepository
 from app.db.session import get_db
+from app.mappers.event_mapper import EventMapper
 from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput
 from datetime import datetime
 
@@ -35,7 +36,6 @@ class EventService:
         return event
 
     async def create_event(self, payload: CreateEventInput):
-        # Vérif parent
         parent_id = None if payload.parent_id is None else payload.parent_id
         if parent_id is not None:
             parent = await self.repo.get_event_by_id(parent_id)
@@ -43,31 +43,18 @@ class EventService:
                 raise InvalidParentEventError()
 
         try:
-            # Créer l'événement sans audiences d'abord
-            event = Event(
-                name = payload.name,
-                description = payload.description,
-                event_type = payload.event_type,
-                start_date = make_naive(payload.start_date),
-                end_date = make_naive(payload.end_date),
-                latitude = payload.latitude,
-                longitude = payload.longitude,
-                parent_id = parent_id
-            )
+            event = EventMapper.to_event_entity(payload)
 
-            # Gérer les audiences
             if payload.audiences:
                 audience_ids = [a.id for a in payload.audiences]
                 audiences = await self.repo.get_audiences_by_ids(audience_ids)
                 event.audiences = audiences
+
             result = await self.repo.create_event(event)
-            print("Service : ", result)
             return result
 
         except Exception as e:
-
             print("ERROR:", e)
-
             raise DatabaseError(str(e))
 
     async def update_event(self, event_id:int, payload:UpdateEventInput):
