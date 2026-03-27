@@ -1,5 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from app.db.session import get_db
@@ -15,17 +17,20 @@ from app.core.exceptions import (
 from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 
+import traceback
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
     repo = UserRepository(db)
     contact_repo = ContactRepository(db)
-    return UserService(repo, contact_repo)
+    address_repo = AddressRepository(db)
+    return UserService(repo, contact_repo, address_repo)
 
 class UserService:
-    def __init__(self, repo:UserRepository, contact_repo:ContactRepository):
+    def __init__(self, repo:UserRepository, contact_repo:ContactRepository, address_repo:AddressRepository):
         # Injection du repository
         self.repo = repo
         self.contact_repo = contact_repo
+        self.address_repo = address_repo
 
     # Récupérer tous les utilisateurs
     async def get_users(self, filters:dict | None = None):
@@ -81,38 +86,39 @@ class UserService:
             raise UserNotFoundError()
         return {"message": "User deleted successfully"}
 
-    class UserService:
-        def __init__(self, user_repo, contact_repo, address_repo):
-            self.repo = user_repo
-            self.contact_repo = contact_repo
-            self.address_repo = address_repo
 
-        async def create_user(self, payload: UserCreateInput) -> User:
-            try:
-                if payload.home_address:
-                    home_address = UserMapper.to_address_entity(payload.home_address)
-                    created_home = await self.address_repo.create_address(home_address)
-                    home_id = created_home.id
-                else:
-                    home_id = None
+    async def create_user(self, payload: UserCreateInput) -> User:
+        try:
+            if payload.home_address:
+                home_address = UserMapper.to_address_entity(payload.home_address)
+                created_home = await self.address_repo.create_address(home_address)
+                home_id = created_home.id
+            else:
+                home_id = None
 
-                if payload.residential_address:
-                    residential_address = UserMapper.to_address_entity(payload.residential_address)
-                    created_residential = await self.address_repo.create_address(residential_address)
-                    residential_id = created_residential.id
-                else:
-                    residential_id = None
+            if payload.residential_address:
+                residential_address = UserMapper.to_address_entity(payload.residential_address)
+                created_residential = await self.address_repo.create_address(residential_address)
+                residential_id = created_residential.id
+            else:
+                residential_id = None
 
-                user_entity = UserMapper.to_user_entity(payload)
-                user_entity.home_address_id = home_id
-                user_entity.residential_address_id = residential_id
-                created_user = await self.repo.create_user(user_entity)
+            user_entity = UserMapper.to_user_entity(payload)
+            user_entity.home_address_id = home_id
+            user_entity.residential_address_id = residential_id
+            created_user = await self.repo.create_user(user_entity)
 
-                contact = UserMapper.to_contact_entity(payload, created_user.id)
-                if contact:
-                    await self.contact_repo.create_contact(contact)
+            contact = UserMapper.to_contact_entity(payload, created_user.id)
+            if contact:
+                await self.contact_repo.create_contact(contact)
 
-                return await self.repo.get_user_by_id(created_user.id)
+            return await self.repo.get_user_by_id(created_user.id)
 
-            except Exception as e:
-                raise DatabaseError() from e
+        except Exception as e:
+
+
+            print("⚠️ DatabaseError:", e)
+
+            traceback.print_exc()
+
+            raise DatabaseError() from e
