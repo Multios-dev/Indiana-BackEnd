@@ -16,6 +16,7 @@ from app.core.exceptions import (
     EmptyUpdatePayloadError,
     DatabaseError
 )
+from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 
 
@@ -87,29 +88,14 @@ class UserService:
     # Créer un utilisateur
     async def create_user(self, payload: UserCreateInput) -> User:
         try:
-            person = User(
-                first_names=payload.first_names,
-                last_name=payload.last_name,
-                birth_date=payload.birth_date,
-                gender=payload.gender,
-                totem=payload.totem,
-                quali=payload.quali,
-                is_legal_guardian=payload.is_legal_guardian,
-            )
+            # Délégation au mapper (DTO -> Entity)
+            person = UserMapper.to_user_entity(payload)
+
             created = await self.repo.create_user(person)
 
-            # Créer le contact si fourni
-            if payload.contact:
-                contact = Contact(
-                    email=payload.contact.email,
-                    phone=payload.contact.phone,
-                    user_id=created.id,
-                )
-                await self.contact_repo.create_contact(contact)
+            # Gestion du contact via mapper
+            contact = UserMapper.to_contact_entity(payload, created.id)
 
-            # Recharger le user avec ses relations
-            created = await self.repo.get_user_by_id(created.id)
-
-            return created
+            return await self.repo.get_user_by_id(created.id)
         except Exception:
             raise DatabaseError()
