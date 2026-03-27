@@ -12,5 +12,5 @@ class OrganizationMapper:
     def to_contact_entity(payload:CreateOrganizationInput, org_id:int) -> Contact:
         if not payload.contact:
             return None
-        data = payload.model_dump(exclude_none=True)
+        data = payload.contact.model_dump(exclude_none=True)
         return Contact(org_id=org_id, **data)
