@@ -1,3 +1,4 @@
+from app.db.models.address_model import Address
 from app.db.models.user_model import User
 
 
@@ -15,3 +16,7 @@ class UserMapper:
         if not payload.contact:
             return None
         data = payload.contact.model_dump(exclude_none=True)
+
+    @staticmethod
+    def to_address_entity(payload: "UserCreateInput") -> "Address":
+        return Address(**payload.model_dump())

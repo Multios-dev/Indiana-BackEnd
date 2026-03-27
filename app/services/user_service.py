@@ -1,15 +1,11 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app import db
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from app.db.session import get_db
 
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
-
-from datetime import date
 
 from app.core.exceptions import (
     UserNotFoundError,
@@ -85,17 +81,38 @@ class UserService:
             raise UserNotFoundError()
         return {"message": "User deleted successfully"}
 
-    # Créer un utilisateur
-    async def create_user(self, payload: UserCreateInput) -> User:
-        try:
-            # Délégation au mapper (DTO -> Entity)
-            person = UserMapper.to_user_entity(payload)
+    class UserService:
+        def __init__(self, user_repo, contact_repo, address_repo):
+            self.repo = user_repo
+            self.contact_repo = contact_repo
+            self.address_repo = address_repo
 
-            created = await self.repo.create_user(person)
+        async def create_user(self, payload: UserCreateInput) -> User:
+            try:
+                if payload.home_address:
+                    home_address = UserMapper.to_address_entity(payload.home_address)
+                    created_home = await self.address_repo.create_address(home_address)
+                    home_id = created_home.id
+                else:
+                    home_id = None
 
-            # Gestion du contact via mapper
-            contact = UserMapper.to_contact_entity(payload, created.id)
+                if payload.residential_address:
+                    residential_address = UserMapper.to_address_entity(payload.residential_address)
+                    created_residential = await self.address_repo.create_address(residential_address)
+                    residential_id = created_residential.id
+                else:
+                    residential_id = None
 
-            return await self.repo.get_user_by_id(created.id)
-        except Exception:
-            raise DatabaseError()
+                user_entity = UserMapper.to_user_entity(payload)
+                user_entity.home_address_id = home_id
+                user_entity.residential_address_id = residential_id
+                created_user = await self.repo.create_user(user_entity)
+
+                contact = UserMapper.to_contact_entity(payload, created_user.id)
+                if contact:
+                    await self.contact_repo.create_contact(contact)
+
+                return await self.repo.get_user_by_id(created_user.id)
+
+            except Exception as e:
+                raise DatabaseError() from e
