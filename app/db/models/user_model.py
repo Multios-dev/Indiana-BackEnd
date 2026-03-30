@@ -1,11 +1,13 @@
-from sqlalchemy import Column, Integer, String, Date, JSON, Boolean, ForeignKey
+from sqlalchemy import Column, String, Date, JSON, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
 # Représente une personne dans le système
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     first_names = Column(JSON, nullable=False)                          #Liste des prénoms stockée en JSON car certains utilisateurs ont plusieurs prénoms
     last_name = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
@@ -16,14 +18,14 @@ class User(Base):
 
     # Référence vers l'adresse du domicile (obligatoire)
     home_address_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("addresses.id"),
         nullable=False
     )
 
     # Référence vers l'adresse résidentielle (optionnelle)
     residential_address_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("addresses.id"),
         nullable=True
     )
