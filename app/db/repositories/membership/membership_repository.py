@@ -1,10 +1,9 @@
 from sqlalchemy.exc import SQLAlchemyError
-
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_interface import MembershipInterface
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from uuid import UUID
 
 class MembershipRepository(MembershipInterface):
     def __init__(self, db:AsyncSession):
@@ -36,7 +35,7 @@ class MembershipRepository(MembershipInterface):
         return result.scalars().all()
 
     # Récupérer un mandat spécifique
-    async def get_membership_by_id(self, membership_id:int):
+    async def get_membership_by_id(self, membership_id:UUID):
         stmt = select(Membership).where(Membership.id == membership_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()

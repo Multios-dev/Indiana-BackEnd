@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Depends
-
 from app.schemas.dtos.input.organization_input import CreateOrganizationInput, UpdateOrganizationInput
 from app.schemas.dtos.output.organization_output import OrganizationOutput
 from app.services.organization_service import OrganizationService, get_organization_service
+from uuid import UUID
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -23,7 +23,7 @@ async def get_organizations(
 
 @router.get("/{org_id}", response_model=OrganizationOutput, summary="Récupérer une organisation spécifique")
 async def get_organization(
-        org_id: int,
+        org_id: UUID,
         service: OrganizationService = Depends(get_organization_service)
 ):
     return await service.get_organization_by_id(org_id)

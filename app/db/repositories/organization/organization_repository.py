@@ -1,9 +1,9 @@
 from app.db.models.organization_model import Organization
 from app.db.repositories.organization.organization_interface import OrganizationInterface
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
+from uuid import UUID
 
 class OrganizationRepository(OrganizationInterface):
     def __init__(self, db:AsyncSession):
@@ -39,7 +39,7 @@ class OrganizationRepository(OrganizationInterface):
         return result.scalars().all()
 
     # Récupérer une organisation par son id
-    async def get_organization_by_id(self, id:int):
+    async def get_organization_by_id(self, id:UUID):
         stmt = select(Organization).where(Organization.id == id).options(selectinload(Organization.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()

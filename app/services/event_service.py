@@ -1,6 +1,5 @@
 from app.core.exceptions import EventNotFoundError, InvalidParentEventError, DatabaseError, EmptyUpdatePayloadError, \
     SelfParentEventError
-from app.db.models.event_model import Event
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from app.db.repositories.event.event_repository import EventRepository
@@ -8,6 +7,7 @@ from app.db.session import get_db
 from app.mappers.event_mapper import EventMapper
 from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput
 from datetime import datetime
+from uuid import UUID
 
 def get_event_service(db: AsyncSession = Depends(get_db)):
     repo = EventRepository(db)
@@ -29,7 +29,7 @@ class EventService:
             raise EventNotFoundError()
         return events
 
-    async def get_event_by_id(self, event_id:int):
+    async def get_event_by_id(self, event_id:UUID):
         event = await self.repo.get_event_by_id(event_id)
         if not event:
             raise EventNotFoundError()

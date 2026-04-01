@@ -1,16 +1,13 @@
 import traceback
-
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.mappers.organization_mapper import OrganizationMapper
 from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, CreateOrganizationInput
-
 from app.core.exceptions import (
     OrganizationNotFoundError,
     EmptyUpdatePayloadError,
@@ -18,6 +15,7 @@ from app.core.exceptions import (
     InvalidParentOrganizationError,
     SelfParentOrganizationError,
 )
+from uuid import UUID
 
 def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
@@ -35,7 +33,7 @@ class OrganizationService:
             raise OrganizationNotFoundError()
         return organizations
 
-    async def get_organization_by_id(self, id: int):
+    async def get_organization_by_id(self, id: UUID):
         organization = await self.repo.get_organization_by_id(id)
         if not organization:
             raise OrganizationNotFoundError()
@@ -63,7 +61,7 @@ class OrganizationService:
             traceback.print_exc()
             raise DatabaseError() from e
 
-    async def update_organization(self, organization_id: int, payload: UpdateOrganizationInput):
+    async def update_organization(self, organization_id: UUID, payload: UpdateOrganizationInput):
         organization = await self.repo.get_organization_by_id(organization_id)
         if not organization:
             raise OrganizationNotFoundError()

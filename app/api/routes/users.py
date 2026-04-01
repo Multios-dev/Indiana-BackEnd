@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Request
-
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 from app.schemas.dtos.output.user_output import UserOutput
 from app.services.user_service import UserService, get_user_service
+from uuid import UUID
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -23,7 +23,7 @@ async def get_users(
 
 @router.get("/{user_id}", response_model=UserOutput, summary="Récupérer un utilisateur spécifique")
 async def get_user(
-        user_id: int,
+        user_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_user_by_id(user_id)
