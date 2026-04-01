@@ -1,5 +1,5 @@
 import re
-from pydantic import BaseModel, field_validator, EmailStr
+from pydantic import BaseModel, field_validator, EmailStr, UUID4
 from app.db.models.enums.organization_type import OrganizationType
 
 class ContactInput(BaseModel):
@@ -27,7 +27,7 @@ class CreateOrganizationInput(BaseModel):
     name: str
     acronym: str | None = None
     logo: str | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     purpose: str
     org_type: OrganizationType | None = None
     sgp_type: str | None = None
@@ -39,7 +39,7 @@ class UpdateOrganizationInput(BaseModel):
     name: str | None = None
     acronym: str | None = None
     logo: str | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     purpose: str | None = None
     org_type: OrganizationType | None = None
     sgp_type: str | None = None

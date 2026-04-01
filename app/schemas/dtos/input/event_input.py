@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List, Self
-from pydantic import BaseModel, ConfigDict, model_validator, field_validator
+from pydantic import BaseModel, ConfigDict, model_validator, field_validator, UUID4
 
 class AudienceInput(BaseModel):
-    id: int
+    id: UUID4
     label: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -15,7 +15,7 @@ class CreateEventInput(BaseModel):
     end_date: datetime | None = None
     latitude: float | None = None
     longitude: float | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
 
     @field_validator("start_date", "end_date", mode="before")
