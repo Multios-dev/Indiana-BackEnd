@@ -55,7 +55,7 @@ class UpdateEventInput(BaseModel):
     end_date: datetime | None = None
     latitude: float | None = None
     longitude: float | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
 
     @field_validator("start_date", "end_date", mode="before")
