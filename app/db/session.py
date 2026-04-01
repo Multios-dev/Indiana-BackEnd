@@ -1,11 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-
-DATABASE_URL = "postgresql+asyncpg://avnadmin:7bgJpfo0RVhv8A5DrLe1@postgresql-fbe70990-oa7247cc6.database.cloud.ovh.net:20184/indiana_test"
+from app.core.config import settings
 
 # engine est un objet qui gère la connexion à la base de données
 # il peut ouvrir des connexions et envoyer des requêtes sql
 engine = create_async_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     echo=True, # affiche les requêtes sql dans le terminal
 )
 
