@@ -38,7 +38,7 @@ async def update_user(
 
 @router.delete("/{user_id}", status_code=200, response_model=dict, summary="Supprimer un utilisateur")
 async def delete_user(
-        user_id: int,
+        user_id: UUID,
         service: UserService = Depends(get_user_service),
 ):
     return await service.delete_user(user_id)

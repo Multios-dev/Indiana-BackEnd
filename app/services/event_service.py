@@ -94,7 +94,7 @@ class EventService:
             raise EventNotFoundError()
         return updated_event
 
-    async def delete_event(self, event_id:int):
+    async def delete_event(self, event_id:UUID):
         deleted_event = await self.repo.get_event_by_id(event_id)
         if not deleted_event:
             raise EventNotFoundError()

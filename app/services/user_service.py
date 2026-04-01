@@ -77,7 +77,7 @@ class UserService:
 
         return user
 
-    async def delete_user(self, user_id: int):
+    async def delete_user(self, user_id:UUID):
         deleted = await self.repo.delete_user(user_id)
         if not deleted:
             raise UserNotFoundError()

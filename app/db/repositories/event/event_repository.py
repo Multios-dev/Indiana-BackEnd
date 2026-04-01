@@ -75,7 +75,7 @@ class EventRepository(EventInterface):
             raise
 
     # Supprimer une organisation
-    async def delete_event(self, event_id:int):
+    async def delete_event(self, event_id:UUID):
         try:
             stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
             result = await self.db.execute(stmt)

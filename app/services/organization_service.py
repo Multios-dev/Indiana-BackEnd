@@ -106,7 +106,7 @@ class OrganizationService:
 
         return organization
 
-    async def delete_organization(self, organization_id: int):
+    async def delete_organization(self, organization_id:UUID):
         deleted = await self.repo.delete_organization(organization_id)
         if not deleted:
             raise OrganizationNotFoundError()

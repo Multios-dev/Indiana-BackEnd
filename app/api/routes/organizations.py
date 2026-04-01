@@ -38,7 +38,7 @@ async def update_organization(
 
 @router.delete("/{org_id}", status_code=200, response_model=dict, summary="Supprimer une organisation")
 async def delete_organization(
-        org_id: int,
+        org_id: UUID,
         service: OrganizationService = Depends(get_organization_service)
 ):
     return await service.delete_organization(org_id)

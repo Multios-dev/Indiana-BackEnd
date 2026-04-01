@@ -75,7 +75,7 @@ class MembershipRepository(MembershipInterface):
             raise
 
     # Supprimer un mandat
-    async def delete_membership(self, membership_id:int)->None:
+    async def delete_membership(self, membership_id:UUID)->None:
         try:
             stmt = select(Membership).where(Membership.id == membership_id)
             result = await self.db.execute(stmt)

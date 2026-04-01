@@ -91,7 +91,7 @@ class UserRepository(UserInterface):
         return user_found
 
     # Supprimer un utilisateur
-    async def delete_user(self, user_id:int):
+    async def delete_user(self, user_id:UUID):
         stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()

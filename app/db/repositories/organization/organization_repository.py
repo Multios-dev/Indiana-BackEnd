@@ -39,8 +39,8 @@ class OrganizationRepository(OrganizationInterface):
         return result.scalars().all()
 
     # Récupérer une organisation par son id
-    async def get_organization_by_id(self, id:UUID):
-        stmt = select(Organization).where(Organization.id == id).options(selectinload(Organization.contact))
+    async def get_organization_by_id(self, org_id:UUID):
+        stmt = select(Organization).where(Organization.id == org_id).options(selectinload(Organization.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -78,7 +78,7 @@ class OrganizationRepository(OrganizationInterface):
             raise
 
     # Supprimer une organisation
-    async def delete_organization(self, organization_id: int):
+    async def delete_organization(self, organization_id:UUID):
         try:
             stmt = select(Organization).where(Organization.id == organization_id).options(selectinload(Organization.contact))
             result = await self.db.execute(stmt)
