@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Request
-
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 from app.schemas.dtos.output.user_output import UserOutput
 from app.services.user_service import UserService, get_user_service
+from uuid import UUID
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -23,14 +23,14 @@ async def get_users(
 
 @router.get("/{user_id}", response_model=UserOutput, summary="Récupérer un utilisateur spécifique")
 async def get_user(
-        user_id: int,
+        user_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_user_by_id(user_id)
 
 @router.put("/{user_id}", response_model=UserOutput, summary="Modifier les données d'un utilisateur")
 async def update_user(
-        user_id: int,
+        user_id: UUID,
         payload: UserUpdateInput,
         service: UserService = Depends(get_user_service),
 ):
@@ -38,7 +38,7 @@ async def update_user(
 
 @router.delete("/{user_id}", status_code=200, response_model=dict, summary="Supprimer un utilisateur")
 async def delete_user(
-        user_id: int,
+        user_id: UUID,
         service: UserService = Depends(get_user_service),
 ):
     return await service.delete_user(user_id)

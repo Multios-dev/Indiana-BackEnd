@@ -1,10 +1,12 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
 class Event(Base):
     __tablename__ = "events"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -19,7 +21,7 @@ class Event(Base):
 
     # Référence vers l'événement parent
     parent_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("events.id"),
         nullable=True
     )
@@ -30,7 +32,7 @@ class Event(Base):
     # Organisation parent
     parent = relationship(
         "Event",
-        remote_side=[id],
+        remote_side=lambda: [Event.id],
         back_populates="children"
     )
 
@@ -52,7 +54,7 @@ class Event(Base):
 class Audience(Base):
     __tablename__ = "audiences"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     label = Column(String, nullable=False, unique=True)
 
     # relation inverse

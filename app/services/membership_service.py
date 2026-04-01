@@ -1,17 +1,13 @@
 import traceback
-
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_repository import MembershipRepository
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 from app.mappers.membership_mapper import MembershipMapper
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
-
 from app.core.exceptions import (
     MembershipNotFoundError,
     UserNotFoundError,
@@ -20,6 +16,7 @@ from app.core.exceptions import (
     EmptyUpdatePayloadError,
     DatabaseError,
 )
+from uuid import UUID
 
 def get_membership_service(db: AsyncSession = Depends(get_db)):
     repo = MembershipRepository(db)
@@ -44,7 +41,7 @@ class MembershipService:
             raise MembershipNotFoundError()
         return memberships
 
-    async def get_membership_by_id(self, membership_id: int) -> Membership:
+    async def get_membership_by_id(self, membership_id: UUID) -> Membership:
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise MembershipNotFoundError()
@@ -70,7 +67,7 @@ class MembershipService:
             traceback.print_exc()
             raise DatabaseError() from e
 
-    async def update_membership(self, membership_id: int, payload: UpdateMembershipInput):
+    async def update_membership(self, membership_id: UUID, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise MembershipNotFoundError()
@@ -90,7 +87,7 @@ class MembershipService:
             raise MembershipNotFoundError()
         return updated
 
-    async def delete_membership(self, membership_id: int):
+    async def delete_membership(self, membership_id: UUID):
         deleted = await self.repo.delete_membership(membership_id)
         if not deleted:
             raise MembershipNotFoundError()

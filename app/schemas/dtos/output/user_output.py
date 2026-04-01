@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from datetime import date
 
 class ContactOutput(BaseModel):
-    id: int
+    id: UUID4
     email:str | None = None
     phone:str | None = None
     website:str | None = None
@@ -12,7 +12,7 @@ class ContactOutput(BaseModel):
     model_config = {"from_attributes": True}
 
 class UserOutput(BaseModel):
-    id: int
+    id: UUID4
     first_names: list[str]
     last_name: str
     birth_date: date | None = None

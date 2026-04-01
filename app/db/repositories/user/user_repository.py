@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
-
 from app.db.models.user_model import User
 from app.db.repositories.user.user_interface import UserInterface
+from uuid import UUID
 
 class UserRepository(UserInterface):
     def __init__(self, db:AsyncSession):
@@ -66,13 +66,13 @@ class UserRepository(UserInterface):
         return result.scalars().all()
 
     # Récupérer un utilisateur spécifique
-    async def get_user_by_id(self, user_id:int):
+    async def get_user_by_id(self, user_id:UUID):
         stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     # Modifier les données d'un utilisateur
-    async def update_user(self, user_id:int, data:dict):
+    async def update_user(self, user_id:UUID, data:dict):
         stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user_found = result.scalar_one_or_none()
@@ -91,7 +91,7 @@ class UserRepository(UserInterface):
         return user_found
 
     # Supprimer un utilisateur
-    async def delete_user(self, user_id:int):
+    async def delete_user(self, user_id:UUID):
         stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()

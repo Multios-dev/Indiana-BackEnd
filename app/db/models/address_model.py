@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, String
-
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String
 from app.db.base import Base
-# test
+
 class Address(Base):
     __tablename__ = "addresses"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     box_number = Column(String, nullable=False)
     street = Column(String, nullable=False)
     post_name = Column(String, nullable=False)

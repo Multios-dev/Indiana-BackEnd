@@ -1,11 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.repositories.event.event_interface import EventInterface
-
 from app.db.models.event_model import Event, Audience
-
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, and_
+from uuid import UUID
 
 class EventRepository(EventInterface):
     def __init__(self, db:AsyncSession):
@@ -35,7 +33,7 @@ class EventRepository(EventInterface):
         return result.scalars().all()
 
     # Récupérer un événement spécifique
-    async def get_event_by_id(self, event_id:int):
+    async def get_event_by_id(self, event_id:UUID):
         stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
@@ -52,7 +50,7 @@ class EventRepository(EventInterface):
         return result.scalar_one()
 
     # Modifier un événement
-    async def update_event(self, event_id, data: dict):
+    async def update_event(self, event_id:UUID, data: dict):
         try:
             stmt = select(Event).where(Event.id == event_id)
             result = await self.db.execute(stmt)
@@ -77,7 +75,7 @@ class EventRepository(EventInterface):
             raise
 
     # Supprimer une organisation
-    async def delete_event(self, event_id:int):
+    async def delete_event(self, event_id:UUID):
         try:
             stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
             result = await self.db.execute(stmt)

@@ -4,6 +4,7 @@ from fastapi.params import Depends
 from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput
 from app.schemas.dtos.output.event_output import EventOutput
 from app.services.event_service import get_event_service, EventService
+from uuid import UUID
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -24,14 +25,14 @@ async def get_all_events(
 
 @router.get("/{event_id}", response_model=EventOutput, summary="Récupérer un événement spécifique")
 async def get_event_by_id(
-        event_id:int,
+        event_id:UUID,
         service: EventService = Depends(get_event_service)
 ):
     return await service.get_event_by_id(event_id)
 
 @router.put("/{event_id}", response_model=EventOutput, summary="Modifier un événement")
 async def update_event(
-        event_id:int,
+        event_id:UUID,
         payload:UpdateEventInput,
         service: EventService = Depends(get_event_service)
 ):
@@ -39,7 +40,7 @@ async def update_event(
 
 @router.delete("/{event_id}", status_code=200, response_model=dict, summary="Supprimer un événement")
 async def delete_event(
-        event_id:int,
+        event_id:UUID,
         service: EventService = Depends(get_event_service)
 ):
     return await service.delete_event(event_id)

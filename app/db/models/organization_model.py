@@ -1,11 +1,13 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
 # Représente une organisation (unité, groupe, etc.)
 class Organization(Base):
     __tablename__ = "organizations"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     acronym = Column(String, nullable=True)
     logo = Column(String, nullable=True)
@@ -17,7 +19,7 @@ class Organization(Base):
 
     # Référence vers l'organisation parent
     parent_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=True
     )
@@ -28,7 +30,7 @@ class Organization(Base):
     # Organisation parent
     parent = relationship(
         "Organization",
-        remote_side=[id],
+        remote_side=lambda: [Organization.id],
         back_populates="children"
     )
 

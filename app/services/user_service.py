@@ -1,14 +1,11 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from app.db.session import get_db
-
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
-
 from app.core.exceptions import (
     UserNotFoundError,
     EmptyUpdatePayloadError,
@@ -16,7 +13,7 @@ from app.core.exceptions import (
 )
 from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
-
+from uuid import UUID
 import traceback
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
@@ -40,13 +37,13 @@ class UserService:
         return users
 
     # Récupérer un utilisateur spécifique
-    async def get_user_by_id(self, user_id):
+    async def get_user_by_id(self, user_id:UUID):
         user = await self.repo.get_user_by_id(user_id)
         if not user:
             raise UserNotFoundError()
         return user
 
-    async def update_user(self, user_id: int, payload: UserUpdateInput):
+    async def update_user(self, user_id: UUID, payload: UserUpdateInput):
         user = await self.repo.get_user_by_id(user_id)
         if not user:
             raise UserNotFoundError()
@@ -80,7 +77,7 @@ class UserService:
 
         return user
 
-    async def delete_user(self, user_id: int):
+    async def delete_user(self, user_id:UUID):
         deleted = await self.repo.delete_user(user_id)
         if not deleted:
             raise UserNotFoundError()
