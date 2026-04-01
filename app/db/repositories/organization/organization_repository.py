@@ -56,7 +56,7 @@ class OrganizationRepository(OrganizationInterface):
         return result.scalar_one()
 
     # Modifier une organisation
-    async def update_organization(self, organization_id: int, data: dict):
+    async def update_organization(self, organization_id: UUID, data: dict):
         try:
             stmt = select(Organization).where(Organization.id == organization_id)
             result = await self.db.execute(stmt)

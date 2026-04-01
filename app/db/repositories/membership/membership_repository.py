@@ -53,7 +53,7 @@ class MembershipRepository(MembershipInterface):
             raise
 
     # Modifier un mandat
-    async def update_membership(self, membership_id:int, data:dict):
+    async def update_membership(self, membership_id:UUID, data:dict):
         try:
             stmt = select(Membership).where(Membership.id == membership_id)
             result = await self.db.execute(stmt)

@@ -67,7 +67,7 @@ class MembershipService:
             traceback.print_exc()
             raise DatabaseError() from e
 
-    async def update_membership(self, membership_id: int, payload: UpdateMembershipInput):
+    async def update_membership(self, membership_id: UUID, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise MembershipNotFoundError()

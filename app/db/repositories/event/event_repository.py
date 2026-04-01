@@ -50,7 +50,7 @@ class EventRepository(EventInterface):
         return result.scalar_one()
 
     # Modifier un événement
-    async def update_event(self, event_id, data: dict):
+    async def update_event(self, event_id:UUID, data: dict):
         try:
             stmt = select(Event).where(Event.id == event_id)
             result = await self.db.execute(stmt)

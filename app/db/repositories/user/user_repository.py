@@ -72,7 +72,7 @@ class UserRepository(UserInterface):
         return result.scalar_one_or_none()
 
     # Modifier les données d'un utilisateur
-    async def update_user(self, user_id:int, data:dict):
+    async def update_user(self, user_id:UUID, data:dict):
         stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
         result = await self.db.execute(stmt)
         user_found = result.scalar_one_or_none()

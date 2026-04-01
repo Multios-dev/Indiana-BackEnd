@@ -30,7 +30,7 @@ async def get_user(
 
 @router.put("/{user_id}", response_model=UserOutput, summary="Modifier les données d'un utilisateur")
 async def update_user(
-        user_id: int,
+        user_id: UUID,
         payload: UserUpdateInput,
         service: UserService = Depends(get_user_service),
 ):

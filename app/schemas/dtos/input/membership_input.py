@@ -22,7 +22,7 @@ class CreateMembershipInput(BaseModel):
     # "self" = l'objet complet avec tous ses champs accessibles via self.xxx
     @model_validator(mode="after")
     def validate_dates(self) -> Self:
-        if self.end_date and self.end_date < self.start_date:
+        if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValueError("End date cannot be less than start date")
         return self
 
@@ -39,6 +39,6 @@ class UpdateMembershipInput(BaseModel):
         return v
     @model_validator(mode="after")
     def validate_dates(self) -> Self:
-        if self.end_date and self.end_date < self.start_date:
+        if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValueError("End date cannot be less than start date")
         return self

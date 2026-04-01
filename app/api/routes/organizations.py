@@ -30,7 +30,7 @@ async def get_organization(
 
 @router.put("/{org_id}", response_model=OrganizationOutput, summary="Modifier une organisation")
 async def update_organization(
-        org_id: int,
+        org_id: UUID,
         payload: UpdateOrganizationInput,
         service: OrganizationService = Depends(get_organization_service)
 ):

@@ -33,8 +33,8 @@ class OrganizationService:
             raise OrganizationNotFoundError()
         return organizations
 
-    async def get_organization_by_id(self, id: UUID):
-        organization = await self.repo.get_organization_by_id(id)
+    async def get_organization_by_id(self, org_id: UUID):
+        organization = await self.repo.get_organization_by_id(org_id)
         if not organization:
             raise OrganizationNotFoundError()
         return organization

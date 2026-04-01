@@ -30,7 +30,7 @@ async def get_membership(
 
 @router.put("/{membership_id}", response_model=MembershipOutput, summary="Modifier un mandat")
 async def update_membership(
-        membership_id: int,
+        membership_id: UUID,
         payload: UpdateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):

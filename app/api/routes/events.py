@@ -32,7 +32,7 @@ async def get_event_by_id(
 
 @router.put("/{event_id}", response_model=EventOutput, summary="Modifier un événement")
 async def update_event(
-        event_id:int,
+        event_id:UUID,
         payload:UpdateEventInput,
         service: EventService = Depends(get_event_service)
 ):

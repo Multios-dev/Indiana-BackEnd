@@ -57,7 +57,7 @@ class EventService:
             print("ERROR:", e)
             raise DatabaseError(str(e))
 
-    async def update_event(self, event_id:int, payload:UpdateEventInput):
+    async def update_event(self, event_id:UUID, payload:UpdateEventInput):
         event = await self.repo.get_event_by_id(event_id)
         if not event:
             raise EventNotFoundError()

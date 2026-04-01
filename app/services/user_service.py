@@ -43,7 +43,7 @@ class UserService:
             raise UserNotFoundError()
         return user
 
-    async def update_user(self, user_id: int, payload: UserUpdateInput):
+    async def update_user(self, user_id: UUID, payload: UserUpdateInput):
         user = await self.repo.get_user_by_id(user_id)
         if not user:
             raise UserNotFoundError()
