@@ -18,7 +18,7 @@ class ContactInput(BaseModel):
     def validate_website(cls, v):
         if v is None:
             return None
-        # Accepte http:// ou https://
+        # Accepts http:// or https://
         if not re.match(r"^https?://", v):
             raise ValueError("website must start with http:// or https://")
         return v
