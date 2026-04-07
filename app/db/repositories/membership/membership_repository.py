@@ -11,7 +11,7 @@ class MembershipRepository(MembershipInterface):
         # Cette session permettra d'exécuter les requêtes
         self.db = db
 
-    async def get_memberships(self, filters:dict | None = None):
+    async def get_memberships(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Membership)
         conditions = []
 
@@ -31,6 +31,7 @@ class MembershipRepository(MembershipInterface):
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 

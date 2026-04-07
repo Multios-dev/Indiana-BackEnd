@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request
 from fastapi.params import Depends
 from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput
 from app.schemas.dtos.output.event_output import EventOutput
+from app.schemas.pagination import PaginationParams
 from app.services.event_service import get_event_service, EventService
 from uuid import UUID
 
@@ -18,10 +19,15 @@ async def create_event(
 @router.get("/", response_model=List[EventOutput], summary="Récupérer tous les événements")
 async def get_all_events(
         request:Request,
+        pagination: PaginationParams = Depends(),
         service: EventService = Depends(get_event_service)
 ):
-    filters = dict(request.query_params) or None
-    return await service.get_all_events(filters)
+    filters = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in {"skip", "limit"}
+    }
+    return await service.get_all_events(pagination.skip, pagination.limit, filters)
 
 @router.get("/{event_id}", response_model=EventOutput, summary="Récupérer un événement spécifique")
 async def get_event_by_id(
