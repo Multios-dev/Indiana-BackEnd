@@ -3,12 +3,12 @@ from sqlalchemy.orm import relationship
 from app.db.base import Base
 import uuid
 
-# Représente l'appartenance d'un utilisateur à une organisation
+# Represents a user's membership in an organization
 class Membership(Base):
     __tablename__ = "memberships"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    # Clés étrangères
+    # Foreign keys
     user_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -26,15 +26,14 @@ class Membership(Base):
     price = Column(Numeric(10,2), nullable=True)
 
     # -------------------------
-    # RELATIONS
+    # RELATIONSHIPS
     # -------------------------
-    # Relation vers l'utilisateur
+    # Relation to the user
     user = relationship(
         "User",
         back_populates="memberships"
     )
-
-    # Relation vers l'organisation
+    # Relationship to the organization
     organization = relationship(
         "Organization",
         back_populates="memberships"

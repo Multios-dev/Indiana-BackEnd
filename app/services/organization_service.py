@@ -80,15 +80,15 @@ class OrganizationService:
             if data["parent_id"] == organization_id:
                 raise SelfParentOrganizationError()
 
-        # Gérer le contact séparément
+        # Handle contact separately
         contact_data = data.pop("contact", None)
 
         if contact_data:
             if organization.contact:
-                # Modifier le contact existant
+                # Update the existing contact
                 await self.contact_repo.update_contact(organization.contact.id, contact_data)
             else:
-                # Créer un nouveau contact
+                # Crate a new contact
                 contact = Contact(
                     email=contact_data.get("email"),
                     phone=contact_data.get("phone"),
@@ -97,7 +97,7 @@ class OrganizationService:
                 )
                 await self.contact_repo.create_contact(contact)
 
-        # Mettre à jour les champs de l'organisation
+        # Update the organization's fields
         if data:
             updated = await self.repo.update_organization(organization_id, data)
             if not updated:

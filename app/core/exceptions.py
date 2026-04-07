@@ -1,17 +1,17 @@
 """
-Exceptions métier de l'application
+Exceptions for the application
 Principe :
-- Les services lèvent ces erreurs
-- Les routers ne gèrent rien
-- Un handler global transforme en HTTP
+- Services raise these errors
+- Routers handle nothing
+- A global handler converts them to HTTP responses
 """
 
-# Exception de base pour l'application dont toutes les erreurs métier doivent hériter
+# Base exception for the application - all errors must inherit from this
 class AppException(Exception):
     status_code = 400
     detail = "Application error"
 
-    # permet de pouvoir passer un message custom
+    # allows passing a custom message
     def __init__(self, detail:str | None = None):
         self.detail = detail or self.__class__.detail
         super().__init__(self.detail)

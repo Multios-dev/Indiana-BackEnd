@@ -35,13 +35,11 @@ class MembershipRepository(MembershipInterface):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer un mandat spécifique
     async def get_membership_by_id(self, membership_id:UUID):
         stmt = select(Membership).where(Membership.id == membership_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer un mandat
     async def create_membership(self, membership: Membership) -> Membership:
         try:
             self.db.add(membership)
@@ -53,7 +51,6 @@ class MembershipRepository(MembershipInterface):
             print("DB ERROR:", e)
             raise
 
-    # Modifier un mandat
     async def update_membership(self, membership_id:UUID, data:dict):
         try:
             stmt = select(Membership).where(Membership.id == membership_id)
@@ -75,7 +72,6 @@ class MembershipRepository(MembershipInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer un mandat
     async def delete_membership(self, membership_id:UUID)->None:
         try:
             stmt = select(Membership).where(Membership.id == membership_id)

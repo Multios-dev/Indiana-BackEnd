@@ -24,19 +24,17 @@ def get_user_service(db: AsyncSession = Depends(get_db)):
 
 class UserService:
     def __init__(self, repo:UserRepository, contact_repo:ContactRepository, address_repo:AddressRepository):
-        # Injection du repository
+        # Repository injection
         self.repo = repo
         self.contact_repo = contact_repo
         self.address_repo = address_repo
 
-    # Récupérer tous les utilisateurs
     async def get_users(self, skip:int, limit:int, filters:dict | None = None):
         users = await self.repo.get_users(skip, limit, filters)
         if not users:
             raise UserNotFoundError()
         return users
 
-    # Récupérer un utilisateur spécifique
     async def get_user_by_id(self, user_id:UUID):
         user = await self.repo.get_user_by_id(user_id)
         if not user:
@@ -52,15 +50,15 @@ class UserService:
         if not data:
             raise EmptyUpdatePayloadError()
 
-        # Gérer le contact séparément
+        # Handle contact separately
         contact_data = data.pop("contact", None)
 
         if contact_data:
             if user.contact:
-                # Modifier le contact existant
+                # Update the existing contact
                 await self.contact_repo.update_contact(user.contact.id, contact_data)
             else:
-                # Créer un nouveau contact
+                # Create a new contact
                 contact = Contact(
                     email=contact_data.get("email"),
                     phone=contact_data.get("phone"),
@@ -68,7 +66,7 @@ class UserService:
                 )
                 await self.contact_repo.create_contact(contact)
 
-        # Mettre à jour les champs du user
+        # Update the user's fields
         if data:
             updated = await self.repo.update_user(user_id, data)
             if not updated:

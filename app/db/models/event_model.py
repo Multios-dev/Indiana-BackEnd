@@ -15,11 +15,11 @@ class Event(Base):
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
 
-    # Coordonnées géographiques
+    # Geographic coordinates
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    # Référence vers l'événement parent
+    # Reference to the parent event
     parent_id = Column(
         UUID(as_uuid=True),
         ForeignKey("events.id"),
@@ -27,16 +27,16 @@ class Event(Base):
     )
 
     # -------------------------
-    # RELATIONS HIERARCHIQUES
+    # RELATIONSHIPS
     # -------------------------
-    # Organisation parent
+    # Parent organization
     parent = relationship(
         "Event",
         remote_side=lambda: [Event.id],
         back_populates="children"
     )
 
-    # Sous-organisations
+    # Sub-organizations
     children = relationship(
         "Event",
         back_populates="parent",
@@ -44,7 +44,7 @@ class Event(Base):
         passive_deletes=True
     )
 
-    # Relation N-N avec Audience
+    # N-N relationshop with Audience
     audiences = relationship(
         "Audience",
         secondary="event_audience",
@@ -57,14 +57,14 @@ class Audience(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     label = Column(String, nullable=False, unique=True)
 
-    # relation inverse
+    # Inverse relationship
     events = relationship(
         "Event",
         secondary="event_audience",
         back_populates="audiences"
     )
 
-# Table d'association
+# Association table
 event_audience = Table(
     "event_audience",
     Base.metadata,
