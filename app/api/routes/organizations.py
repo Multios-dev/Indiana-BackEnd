@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from app.schemas.dtos.input.organization_input import CreateOrganizationInput, UpdateOrganizationInput
 from app.schemas.dtos.output.organization_output import OrganizationOutput
+from app.schemas.pagination import PaginationParams
 from app.services.organization_service import OrganizationService, get_organization_service
 from uuid import UUID
 
@@ -16,10 +17,15 @@ async def create_organization(
 @router.get("", response_model=list[OrganizationOutput], summary="Récupérer toutes les organisations")
 async def get_organizations(
         request: Request,
+        pagination: PaginationParams = Depends(),
         service: OrganizationService = Depends(get_organization_service)
 ):
-    filters = dict(request.query_params) or None
-    return await service.get_all_organizations(filters)
+    filters = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in {"skip", "limit"}
+    }
+    return await service.get_all_organizations(pagination.skip, pagination.limit, filters)
 
 @router.get("/{org_id}", response_model=OrganizationOutput, summary="Récupérer une organisation spécifique")
 async def get_organization(
