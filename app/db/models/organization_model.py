@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
 import uuid
 
-# Représente une organisation (unité, groupe, etc.)
+# Represents an organization (unit, group, etc.)
 class Organization(Base):
     __tablename__ = "organizations"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -17,7 +17,7 @@ class Organization(Base):
     billable = Column(Boolean, nullable=False, default=False)
     is_legal_entity = Column(Boolean, nullable=False, default=False)
 
-    # Référence vers l'organisation parent
+    # Reference to the parent organizaion
     parent_id = Column(
         UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
@@ -25,16 +25,16 @@ class Organization(Base):
     )
 
     # -------------------------
-    # RELATIONS HIERARCHIQUES
+    # RELATIONSHIPS
     # -------------------------
-    # Organisation parent
+    # Parent organization
     parent = relationship(
         "Organization",
         remote_side=lambda: [Organization.id],
         back_populates="children"
     )
 
-    # Sous-organisations
+    # Sub-organizations
     children = relationship(
         "Organization",
         back_populates="parent",
@@ -42,10 +42,7 @@ class Organization(Base):
         passive_deletes=True
     )
 
-    # -------------------------
-    # AUTRES RELATIONS
-    # -------------------------
-    # Contact de l'organisation
+    # Organization contact
     contact = relationship(
         "Contact",
         back_populates="organization",
@@ -53,7 +50,7 @@ class Organization(Base):
         passive_deletes=True
     )
 
-    # Membres de l'organisation
+    # Organization members
     memberships = relationship(
         "Membership",
         back_populates="organization",

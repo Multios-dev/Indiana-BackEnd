@@ -4,26 +4,26 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
 import uuid
 
-# Représente une personne dans le système
+# Represents a person in the system
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    first_names = Column(JSON, nullable=False)                          #Liste des prénoms stockée en JSON car certains utilisateurs ont plusieurs prénoms
+    first_names = Column(JSON, nullable=False)                          #List of first names stored as JSON since some users have multiple first names
     last_name = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
-    totem = Column(String, nullable=True)                               # Totem scout
-    quali = Column(String, nullable=True)                               # Qualification (fonction/statut interne)
-    is_legal_guardian = Column(Boolean, default=False, nullable=False)  # Indique si l'utilisateur est un parent/responsable légal
+    totem = Column(String, nullable=True)                               # Scout totem
+    quali = Column(String, nullable=True)                               # Qualification (internal role/status)
+    is_legal_guardian = Column(Boolean, default=False, nullable=False)  # Indicates whether the user is a parent/legal guardian
 
-    # Référence vers l'adresse du domicile (obligatoire)
+    # Reference to home address (required)
     home_address_id = Column(
         UUID(as_uuid=True),
         ForeignKey("addresses.id"),
         nullable=False
     )
 
-    # Référence vers l'adresse résidentielle (optionnelle)
+    # Reference to residential address (optional)
     residential_address_id = Column(
         UUID(as_uuid=True),
         ForeignKey("addresses.id"),
@@ -31,38 +31,37 @@ class User(Base):
     )
 
     # -------------------------
-    # RELATIONS
+    # RELATIONSHIPS
     # -------------------------
-
-    # Relation 1-à-1 avec Contact
-    # Chaque utilisateur/orga peut avoir qu'un seul contact
+    # 1-to-1 relationship with Contact
+    # Each user/org can have only one contact
     contact = relationship(
         "Contact", back_populates="user",
-        uselist=False,          # signifie "un seul contact"
-        passive_deletes=True    # la db gère la suppression si nécessaire
+        uselist=False,                              # means "single contact"
+        passive_deletes=True                        # the db handles deletion if needed
     )
 
-    # Relation 1-à-N avec Membership (Mandat)
-    # Un utilisateur peut appartenir à plusieurs organisations
+    # 1-to-N relationship with Membership
+    # A user can belong to multiple organizations
     memberships = relationship(
         "Membership",
         back_populates="user",
-        cascade="all, delete",  # si on supprime l'utilisateur, ses memberships aussi
+        cascade="all, delete",  # if the user is deleted, their memberships are too
         passive_deletes=True
     )
 
-    # Relation vers l'adresse de domicile (obligatoire)
-    # foreign_keys est obligatoire ici car on a DEUX FK qui pointent vers la même table "addresses"
-    # Sans ça, SQLAlchemy ne sait pas quelle FK utiliser pour quelle relation
-    # uselist=False signifie "un seul objet Address" et non une liste d'adresses
+    # Relationship to home address (required)
+    # foreign_keys is required here beceause we have 2 FKs pointing to the same "addresses" table
+    # Without it, SQLAlchemy cannot determine which FK to use for which relationship
+    # uselist=False means "a single Address object" instead of a list
     home_address = relationship(
         "Address",
         foreign_keys=[home_address_id],
         uselist=False
     )
 
-    # Relation vers l'adresse de résidence (optionnelle)
-    # Même logique que home_address
+    # Relationship to residential address (optional)
+    # Same logic as home_address
     residential_address = relationship(
         "Address",
         foreign_keys=[residential_address_id],
