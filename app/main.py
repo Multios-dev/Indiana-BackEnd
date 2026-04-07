@@ -20,12 +20,12 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-# Création de l'application FastAPI
+# FastAPI application creation
 app = FastAPI(lifespan=lifespan)
 
 app.add_exception_handler(AppException, app_exception_handler)
 
-# Middleware CORS
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -34,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers de l'application
+# Application routers
 app.include_router(user_router)
 app.include_router(organization_router)
 app.include_router(memberships_router)
