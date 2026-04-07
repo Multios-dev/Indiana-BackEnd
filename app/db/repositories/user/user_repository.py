@@ -22,7 +22,7 @@ class UserRepository(UserInterface):
         return result.scalar_one()
 
     # Récupérer tous les utilisateurs, avec ou sans filtres
-    async def get_users(self, filters: dict | None = None) -> list[User]:
+    async def get_users(self, skip:int, limit:int, filters: dict | None = None) -> list[User]:
         stmt = select(User).options(selectinload(User.contact))
 
         # Initialiser une liste vide
@@ -59,6 +59,7 @@ class UserRepository(UserInterface):
             # and_ permet de combiner plusieurs filtres
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
 
         # scalars() récupère uniquement les objets Organization

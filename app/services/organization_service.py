@@ -27,8 +27,8 @@ class OrganizationService:
         self.repo = repo
         self.contact_repo = contact_repo
 
-    async def get_all_organizations(self, filters: dict | None = None):
-        organizations = await self.repo.get_all_organizations(filters)
+    async def get_all_organizations(self, skip:int, limit:int, filters: dict | None = None):
+        organizations = await self.repo.get_all_organizations(skip, limit, filters)
         if not organizations:
             raise OrganizationNotFoundError()
         return organizations

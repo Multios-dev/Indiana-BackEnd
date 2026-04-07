@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 from app.schemas.dtos.output.user_output import UserOutput
+from app.schemas.pagination import PaginationParams
 from app.services.user_service import UserService, get_user_service
 from uuid import UUID
 
@@ -16,10 +17,15 @@ async def create_user(
 @router.get("/", response_model = list[UserOutput], summary="Récupérer les utilisateurs")
 async def get_users(
         request: Request,
+        pagination: PaginationParams = Depends(),
         service: UserService = Depends(get_user_service),
 ):
-    filters = dict(request.query_params) or None
-    return await service.get_users(filters)
+    filters = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in {"skip", "limit"}
+    }
+    return await service.get_users(pagination.skip, pagination.limit, filters)
 
 @router.get("/{user_id}", response_model=UserOutput, summary="Récupérer un utilisateur spécifique")
 async def get_user(

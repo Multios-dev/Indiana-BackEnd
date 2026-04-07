@@ -35,8 +35,8 @@ class MembershipService:
         self.repo_user = repo_user
         self.repo_organization = repo_organization
 
-    async def get_memberships(self, filters: dict | None = None) -> list[Membership]:
-        memberships = await self.repo.get_memberships(filters)
+    async def get_memberships(self, skip:int, limit:int, filters: dict | None = None) -> list[Membership]:
+        memberships = await self.repo.get_memberships(skip, limit, filters)
         if not memberships:
             raise MembershipNotFoundError()
         return memberships

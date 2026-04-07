@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 from app.schemas.dtos.output.membership_output import MembershipOutput
+from app.schemas.pagination import PaginationParams
 from app.services.membership_service import MembershipService, get_membership_service
 from uuid import UUID
 
@@ -16,10 +17,15 @@ async def create_membership(
 @router.get("/", response_model=list[MembershipOutput], summary="Récupérer tous les mandats")
 async def get_memberships(
         request: Request,
+        pagination: PaginationParams = Depends(),
         service: MembershipService = Depends(get_membership_service)
 ):
-    filters = dict(request.query_params) or None
-    return await service.get_memberships(filters)
+    filters = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in {"skip", "limit"}
+    }
+    return await service.get_memberships(pagination.skip, pagination.limit, filters)
 
 @router.get("/{membership_id}", response_model=MembershipOutput, summary="Récupérer un mandat spécifique")
 async def get_membership(
