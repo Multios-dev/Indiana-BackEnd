@@ -9,7 +9,6 @@ class EventRepository(EventInterface):
     def __init__(self, db:AsyncSession):
         self.db = db
 
-    # Récupérer tous les événements
     async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Event).options(selectinload(Event.audiences))
         conditions=[]
@@ -33,24 +32,21 @@ class EventRepository(EventInterface):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer un événement spécifique
     async def get_event_by_id(self, event_id:UUID):
         stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer un événement
     async def create_event(self, event: Event):
         self.db.add(event)
         await self.db.commit()
         await self.db.refresh(event)
 
-        # Recharger avec les audiences
+        # Reload with audiences
         stmt = select(Event).where(Event.id == event.id).options(selectinload(Event.audiences))
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
-    # Modifier un événement
     async def update_event(self, event_id:UUID, data: dict):
         try:
             stmt = select(Event).where(Event.id == event_id)
@@ -66,7 +62,7 @@ class EventRepository(EventInterface):
 
             await self.db.commit()
 
-            # Recharger avec les audiences
+            # Reload with audiences
             stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
             result = await self.db.execute(stmt)
             return result.scalar_one()
@@ -75,7 +71,6 @@ class EventRepository(EventInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer une organisation
     async def delete_event(self, event_id:UUID):
         try:
             stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
