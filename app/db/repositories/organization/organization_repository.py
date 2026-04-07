@@ -7,11 +7,10 @@ from uuid import UUID
 
 class OrganizationRepository(OrganizationInterface):
     def __init__(self, db:AsyncSession):
-        # On garde une référence à la session db
-        # Cette session permettra d'exécuter les requêtes
+        # Keep a reference to the db session
+        # This session will be used to execute queries
         self.db = db
 
-    # Récupérer toutes les organisations
     async def get_all_organizations(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Organization).options(selectinload(Organization.contact))
         conditions=[]
@@ -39,13 +38,11 @@ class OrganizationRepository(OrganizationInterface):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer une organisation par son id
     async def get_organization_by_id(self, org_id:UUID):
         stmt = select(Organization).where(Organization.id == org_id).options(selectinload(Organization.contact))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer une organisation
     async def create_organization(self, organization: Organization):
         self.db.add(organization)
         await self.db.commit()
@@ -56,7 +53,6 @@ class OrganizationRepository(OrganizationInterface):
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
-    # Modifier une organisation
     async def update_organization(self, organization_id: UUID, data: dict):
         try:
             stmt = select(Organization).where(Organization.id == organization_id)
@@ -78,7 +74,6 @@ class OrganizationRepository(OrganizationInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer une organisation
     async def delete_organization(self, organization_id:UUID):
         try:
             stmt = select(Organization).where(Organization.id == organization_id).options(selectinload(Organization.contact))
