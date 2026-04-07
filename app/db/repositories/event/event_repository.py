@@ -10,7 +10,7 @@ class EventRepository(EventInterface):
         self.db = db
 
     # Récupérer tous les événements
-    async def get_all_events(self, filters:dict | None = None):
+    async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Event).options(selectinload(Event.audiences))
         conditions=[]
 
@@ -29,6 +29,7 @@ class EventRepository(EventInterface):
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 

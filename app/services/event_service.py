@@ -23,8 +23,8 @@ class EventService:
     def __init__(self, repo:EventRepository):
         self.repo = repo
 
-    async def get_all_events(self, filters:dict | None = None):
-        events = await self.repo.get_all_events(filters)
+    async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
+        events = await self.repo.get_all_events(skip, limit, filters)
         if not events:
             raise EventNotFoundError()
         return events
