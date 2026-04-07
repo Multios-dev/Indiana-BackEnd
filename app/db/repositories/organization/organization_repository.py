@@ -12,7 +12,7 @@ class OrganizationRepository(OrganizationInterface):
         self.db = db
 
     # Récupérer toutes les organisations
-    async def get_all_organizations(self, filters:dict | None = None):
+    async def get_all_organizations(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Organization).options(selectinload(Organization.contact))
         conditions=[]
 
@@ -35,6 +35,7 @@ class OrganizationRepository(OrganizationInterface):
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
