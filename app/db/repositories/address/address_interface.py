@@ -1,5 +1,6 @@
 from app.db.models.address_model import Address
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 class AddressInterface(ABC):
     @abstractmethod
