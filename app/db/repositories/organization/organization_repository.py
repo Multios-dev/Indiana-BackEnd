@@ -12,7 +12,12 @@ class OrganizationRepository(OrganizationInterface):
         self.db = db
 
     async def get_all_organizations(self, skip:int, limit:int, filters:dict | None = None):
-        stmt = select(Organization).options(selectinload(Organization.contact))
+        stmt = (select(Organization)
+                .options(
+                    selectinload(Organization.contact),
+                    selectinload(Organization.address)
+                    )
+                )
         conditions=[]
 
         if filters:
@@ -39,7 +44,13 @@ class OrganizationRepository(OrganizationInterface):
         return result.scalars().all()
 
     async def get_organization_by_id(self, org_id:UUID):
-        stmt = select(Organization).where(Organization.id == org_id).options(selectinload(Organization.contact))
+        stmt = (select(Organization)
+                .where(Organization.id == org_id)
+                .options(
+                    selectinload(Organization.contact),
+                    selectinload(Organization.address)
+                    )
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -48,14 +59,25 @@ class OrganizationRepository(OrganizationInterface):
         await self.db.commit()
         await self.db.refresh(organization)
 
-        stmt = select(Organization).where(Organization.id == organization.id).options(
-            selectinload(Organization.contact))
+        stmt = (select(Organization)
+                .where(Organization.id == organization.id)
+                .options(
+                    selectinload(Organization.contact),
+                    selectinload(Organization.address)
+                    )
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
     async def update_organization(self, organization_id: UUID, data: dict):
         try:
-            stmt = select(Organization).where(Organization.id == organization_id)
+            stmt = (select(Organization)
+            .where(Organization.id == organization_id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+            )
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 
@@ -76,7 +98,13 @@ class OrganizationRepository(OrganizationInterface):
 
     async def delete_organization(self, organization_id:UUID):
         try:
-            stmt = select(Organization).where(Organization.id == organization_id).options(selectinload(Organization.contact))
+            stmt = (select(Organization)
+            .where(Organization.id == organization_id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+            )
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 
