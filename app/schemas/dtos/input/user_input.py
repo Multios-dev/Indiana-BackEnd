@@ -21,11 +21,11 @@ class ContactInput(BaseModel):
     # website not included (people don't have web pages)
 
 class AddressInput(BaseModel):
-    box_number:str
-    street:str
-    post_name:str
-    post_code:str
-    country:str
+    thoroughfare: str
+    box_number: str | None = None
+    post_name: str
+    post_code: str
+    country: str
 
 class UserCreateInput(BaseModel):
     # List of first names (at least 1)
