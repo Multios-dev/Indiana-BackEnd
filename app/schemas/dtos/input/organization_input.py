@@ -23,6 +23,13 @@ class ContactInput(BaseModel):
             raise ValueError("website must start with http:// or https://")
         return v
 
+class AddressInput(BaseModel):
+    thoroughfare: str
+    box_number: str | None = None
+    post_name: str
+    post_code: str
+    country: str
+
 class CreateOrganizationInput(BaseModel):
     name: str
     acronym: str | None = None
@@ -34,6 +41,7 @@ class CreateOrganizationInput(BaseModel):
     billable: bool
     is_legal_entity: bool = False
     contact:ContactInput | None = None
+    address:AddressInput | None = None
 
 class UpdateOrganizationInput(BaseModel):
     name: str | None = None
@@ -46,3 +54,4 @@ class UpdateOrganizationInput(BaseModel):
     billable: bool | None = None
     is_legal_entity: bool | None = None
     contact:ContactInput | None = None
+    address:AddressInput | None = None

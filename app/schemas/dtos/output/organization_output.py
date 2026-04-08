@@ -10,6 +10,16 @@ class ContactOutput(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class AddressOutput(BaseModel):
+    id: UUID4
+    thoroughfare: str
+    box_number: str | None = None
+    post_name: str
+    post_code: str
+    country: str
+
+    model_config = {"from_attributes": True}
+
 class OrganizationOutput(BaseModel):
     id: UUID4
     name: str
@@ -21,5 +31,6 @@ class OrganizationOutput(BaseModel):
     is_legal_entity: bool
     parent_id: UUID4 | None = None
     contact: ContactOutput | None = None
+    address: AddressOutput | None = None
 
     model_config = {"from_attributes": True}
