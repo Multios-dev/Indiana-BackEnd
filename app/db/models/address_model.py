@@ -7,7 +7,7 @@ class Address(Base):
     __tablename__ = "addresses"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     thoroughfare = Column(String, nullable=False)  # rue + numéro
-    box_number = Column(String, nullable=False)
+    box_number = Column(String, nullable=True)
     post_name = Column(String, nullable=False)
     post_code = Column(String, nullable=False)
     country = Column(String, nullable=False)
