@@ -24,6 +24,13 @@ class Organization(Base):
         nullable=True
     )
 
+    # Reference to address
+    address_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("addresses.id", ondelete="CASCADE"),
+        nullable=True
+    )
+
     # -------------------------
     # RELATIONSHIPS
     # -------------------------
@@ -33,7 +40,6 @@ class Organization(Base):
         remote_side=lambda: [Organization.id],
         back_populates="children"
     )
-
     # Sub-organizations
     children = relationship(
         "Organization",
@@ -41,7 +47,6 @@ class Organization(Base):
         cascade="all, delete",
         passive_deletes=True
     )
-
     # Organization contact
     contact = relationship(
         "Contact",
@@ -49,11 +54,16 @@ class Organization(Base):
         uselist=False,
         passive_deletes=True
     )
-
     # Organization members
     memberships = relationship(
         "Membership",
         back_populates="organization",
         cascade="all, delete-orphan",
         passive_deletes=True
+    )
+    # Relationship to address
+    address = relationship(
+        "Address",
+        back_populates="organization",
+        uselist=False
     )
