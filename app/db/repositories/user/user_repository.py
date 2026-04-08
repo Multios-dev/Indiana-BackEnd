@@ -16,12 +16,23 @@ class UserRepository(UserInterface):
         await self.db.commit()
         await self.db.refresh(person)
 
-        stmt = select(User).where(User.id == person.id).options(selectinload(User.contact))
+        stmt = (select(User)
+                .where(User.id == person.id)
+                .options(
+                    selectinload(User.contact),
+                    selectinload(User.home_address),
+                    selectinload(User.residential_address)
+                    )
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
     async def get_users(self, skip:int, limit:int, filters: dict | None = None) -> list[User]:
-        stmt = select(User).options(selectinload(User.contact))
+        stmt = select(User).options(
+    selectinload(User.contact),
+            selectinload(User.home_address),
+            selectinload(User.residential_address)
+        )
 
         # Initialize empty list
         conditions = []
@@ -63,12 +74,26 @@ class UserRepository(UserInterface):
         return result.scalars().all()
 
     async def get_user_by_id(self, user_id:UUID):
-        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
+        stmt = (select(User)
+                .where(User.id == user_id)
+                .options(
+            selectinload(User.contact),
+                    selectinload(User.home_address),
+                    selectinload(User.residential_address)
+                )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def update_user(self, user_id:UUID, data:dict):
-        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
+        stmt = (select(User)
+                .where(User.id == user_id)
+                .options(
+            selectinload(User.contact),
+                    selectinload(User.home_address),
+                    selectinload(User.residential_address)
+                )
+        )
         result = await self.db.execute(stmt)
         user_found = result.scalar_one_or_none()
 
@@ -86,7 +111,14 @@ class UserRepository(UserInterface):
         return user_found
 
     async def delete_user(self, user_id:UUID):
-        stmt = select(User).where(User.id == user_id).options(selectinload(User.contact))
+        stmt = (select(User)
+        .where(User.id == user_id)
+        .options(
+            selectinload(User.contact),
+            selectinload(User.home_address),
+            selectinload(User.residence_address)
+        )
+        )
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
 
