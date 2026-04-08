@@ -11,6 +11,16 @@ class ContactOutput(BaseModel):
     # without this, Pydantic cannot convert an ORM object to a Pydantic model
     model_config = {"from_attributes": True}
 
+class AddressOutput(BaseModel):
+    id: UUID4
+    thoroughfare: str
+    box_number: str
+    post_name: str
+    post_code: str
+    country: str
+
+    model_config = {"from_attributes": True}
+
 class UserOutput(BaseModel):
     id: UUID4
     first_names: list[str]
@@ -21,5 +31,7 @@ class UserOutput(BaseModel):
     quali: str | None = None
     is_legal_guardian: bool
     contact: ContactOutput | None = None
+    home_address: AddressOutput | None = None
+    residential_address: AddressOutput | None = None
 
     model_config = {"from_attributes": True}
