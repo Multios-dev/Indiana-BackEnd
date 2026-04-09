@@ -27,6 +27,13 @@ class AddressInput(BaseModel):
     post_code: str
     country: str
 
+class AddressUpdateInput(BaseModel):
+    thoroughfare: str | None = None
+    box_number: str | None = None
+    post_name: str | None = None
+    post_code: str | None = None
+    country: str | None = None
+
 class UserCreateInput(BaseModel):
     # List of first names (at least 1)
     first_names: list[str] = Field(..., min_length=1)
@@ -56,6 +63,8 @@ class UserUpdateInput(BaseModel):
     quali: str | None = None
     is_legal_guardian: bool | None = None
     contact:ContactInput | None = None
+    home_address:AddressUpdateInput | None = None
+    residential_address:AddressUpdateInput | None = None
 
     @field_validator("birth_date")
     def validate_birth_date(cls, v):

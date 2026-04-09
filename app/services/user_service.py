@@ -52,7 +52,6 @@ class UserService:
 
         # Handle contact separately
         contact_data = data.pop("contact", None)
-
         if contact_data:
             if user.contact:
                 # Update the existing contact
@@ -65,6 +64,24 @@ class UserService:
                     user_id=user_id,
                 )
                 await self.contact_repo.create_contact(contact)
+
+        home_address_data = data.pop("home_address", None)
+        if home_address_data is not None:
+            if user.home_address_id:
+                await self.address_repo.update_address(user.home_address_id, home_address_data)
+            else:
+                new_address = UserMapper.to_address_entity(payload.home_address)
+                created = await self.address_repo.create_address(new_address)
+                data["home_address_id"] = created.id
+
+        residential_address_data = data.pop("residential_address", None)
+        if residential_address_data is not None:
+            if user.residential_address_id:
+                await self.address_repo.update_address(user.residential_address_id, residential_address_data)
+            else:
+                new_address = UserMapper.to_address_entity(payload.residential_address)
+                created = await self.address_repo.create_address(new_address)
+                data["residential_address_id"] = created.id
 
         # Update the user's fields
         if data:
