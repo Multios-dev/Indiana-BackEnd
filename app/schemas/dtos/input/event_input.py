@@ -33,6 +33,14 @@ class CreateEventInput(BaseModel):
             raise ValueError("end_date must be after start_date")
         return self
 
+    @model_validator(mode="after")
+    def validate_location(self) -> Self:
+        has_address = self.address is not None
+        has_gps = self.latitude is not None or self.longitude is not None
+        if has_address and has_gps:
+            raise ValueError("GPS and address fields cannot be both at the same time")
+        return self
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
