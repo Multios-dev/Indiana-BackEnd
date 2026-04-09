@@ -55,6 +55,8 @@ class InvalidParentEventError(BadRequestError):
     detail = "Parent event does not exist"
 class SelfParentEventError(BadRequestError):
     detail = "An event cannot be its own parent"
+class ConflictingEventLocationError(BadRequestError):
+    detail = "An event cannot have both an address and GPS coordinates"
 
 # ==============================
 # 500 - SERVER ERROR

@@ -1,5 +1,5 @@
 from app.core.exceptions import EventNotFoundError, InvalidParentEventError, DatabaseError, EmptyUpdatePayloadError, \
-    SelfParentEventError
+    SelfParentEventError, ConflictingEventLocationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
@@ -93,6 +93,14 @@ class EventService:
             audience_ids = [a.id for a in audience_data]
             audiences = await self.repo.get_audiences_by_ids(audience_ids)
             event.audiences = audiences
+
+        # Guard localisation exclusive
+        if "address" in data and ("latitude" in data or "longitude" in data):
+            raise ConflictingEventLocationError()
+        if "address" in data and (event.latitude or event.longitude):
+            raise ConflictingEventLocationError()
+        if ("latitude" in data or "longitude" in data) and event.address_id:
+            raise ConflictingEventLocationError()
 
         address_data = data.pop("address", None)
         if address_data is not None:
