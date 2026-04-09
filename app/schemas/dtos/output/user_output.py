@@ -1,5 +1,6 @@
 from pydantic import BaseModel, UUID4
 from datetime import date
+from app.schemas.dtos.output.address_output import AddressOutput
 
 class ContactOutput(BaseModel):
     id: UUID4
@@ -9,17 +10,6 @@ class ContactOutput(BaseModel):
 
     # Allows Pydantic to read attributes from a SQLAlchemy object directly
     # without this, Pydantic cannot convert an ORM object to a Pydantic model
-    model_config = {"from_attributes": True}
-
-class AddressOutput(BaseModel):
-    id: UUID4
-    thoroughfare: str
-    box_number: str | None = None
-    post_name: str
-    post_code: str
-    country: str
-
-    model_config = {"from_attributes": True}
 
 class UserOutput(BaseModel):
     id: UUID4

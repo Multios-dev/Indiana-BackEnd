@@ -1,22 +1,12 @@
 from pydantic import BaseModel, UUID4
 from app.db.models.enums.organization_type import OrganizationType
-
+from app.schemas.dtos.output.address_output import AddressOutput
 
 class ContactOutput(BaseModel):
     id: UUID4
     email: str | None = None
     phone: str | None = None
     website: str | None = None
-
-    model_config = {"from_attributes": True}
-
-class AddressOutput(BaseModel):
-    id: UUID4
-    thoroughfare: str
-    box_number: str | None = None
-    post_name: str
-    post_code: str
-    country: str
 
     model_config = {"from_attributes": True}
 
