@@ -10,7 +10,12 @@ class EventRepository(EventInterface):
         self.db = db
 
     async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
-        stmt = select(Event).options(selectinload(Event.audiences))
+        stmt = (select(Event)
+                .options(
+            selectinload(Event.audiences),
+                    selectinload(Event.address)
+                )
+        )
         conditions=[]
 
         if filters:
@@ -33,7 +38,10 @@ class EventRepository(EventInterface):
         return result.scalars().all()
 
     async def get_event_by_id(self, event_id:UUID):
-        stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+        stmt = (select(Event)
+                .where(Event.id == event_id)
+                .options(selectinload(Event.audiences), selectinload(Event.address))
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -43,7 +51,10 @@ class EventRepository(EventInterface):
         await self.db.refresh(event)
 
         # Reload with audiences
-        stmt = select(Event).where(Event.id == event.id).options(selectinload(Event.audiences))
+        stmt = (select(Event)
+                .where(Event.id == event.id)
+                .options(selectinload(Event.audiences), selectinload(Event.address))
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
@@ -62,8 +73,11 @@ class EventRepository(EventInterface):
 
             await self.db.commit()
 
-            # Reload with audiences
-            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+            # Reload with audiences and addresses
+            stmt = (select(Event)
+                    .where(Event.id == event_id)
+                    .options(selectinload(Event.audiences), selectinload(Event.address))
+                    )
             result = await self.db.execute(stmt)
             return result.scalar_one()
 
@@ -73,7 +87,10 @@ class EventRepository(EventInterface):
 
     async def delete_event(self, event_id:UUID):
         try:
-            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+            stmt = (select(Event)
+                    .where(Event.id == event_id)
+                    .options(selectinload(Event.audiences), selectinload(Event.address))
+                    )
             result = await self.db.execute(stmt)
             event_found = result.scalar_one_or_none()
 

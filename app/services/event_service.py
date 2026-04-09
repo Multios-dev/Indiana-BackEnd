@@ -2,6 +2,8 @@ from app.core.exceptions import EventNotFoundError, InvalidParentEventError, Dat
     SelfParentEventError
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
+
+from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.event.event_repository import EventRepository
 from app.db.session import get_db
 from app.mappers.event_mapper import EventMapper
@@ -11,7 +13,8 @@ from uuid import UUID
 
 def get_event_service(db: AsyncSession = Depends(get_db)):
     repo = EventRepository(db)
-    return EventService(repo)
+    address_repo = AddressRepository(db)
+    return EventService(repo, address_repo)
 
 def make_naive(dt: datetime | None) -> datetime | None:
     if dt is None:
@@ -20,8 +23,9 @@ def make_naive(dt: datetime | None) -> datetime | None:
     return dt.replace(tzinfo=None)
 
 class EventService:
-    def __init__(self, repo:EventRepository):
+    def __init__(self, repo:EventRepository, address_repo:AddressRepository):
         self.repo = repo
+        self.address_repo = address_repo
 
     async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
         events = await self.repo.get_all_events(skip, limit, filters)
@@ -43,7 +47,15 @@ class EventService:
                 raise InvalidParentEventError()
 
         try:
+            if payload.address:
+                address = EventMapper.to_address_entity(payload.address)
+                created_address = await self.address_repo.create_address(address)
+                address_id = created_address.id
+            else:
+                address_id = None
+
             event = EventMapper.to_event_entity(payload)
+            event.address_id = address_id
 
             if payload.audiences:
                 audience_ids = [a.id for a in payload.audiences]
