@@ -30,6 +30,13 @@ class AddressInput(BaseModel):
     post_code: str
     country: str
 
+class AddressUpdateInput(BaseModel):
+    thoroughfare: str | None = None
+    box_number: str | None = None
+    post_name: str | None = None
+    post_code: str | None = None
+    country: str | None = None
+
 class CreateOrganizationInput(BaseModel):
     name: str
     acronym: str | None = None
@@ -54,4 +61,4 @@ class UpdateOrganizationInput(BaseModel):
     billable: bool | None = None
     is_legal_entity: bool | None = None
     contact:ContactInput | None = None
-    address:AddressInput | None = None
+    address:AddressUpdateInput | None = None

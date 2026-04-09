@@ -93,7 +93,6 @@ class OrganizationService:
 
         # Handle contact separately
         contact_data = data.pop("contact", None)
-
         if contact_data:
             if organization.contact:
                 # Update the existing contact
@@ -107,6 +106,15 @@ class OrganizationService:
                     org_id=organization_id,
                 )
                 await self.contact_repo.create_contact(contact)
+
+        address_data = data.pop("address", None)
+        if address_data is not None:
+            if organization.address_id:
+                await self.address_repo.update_address(organization.address_id, address_data)
+            else:
+                new_address = OrganizationMapper.to_address_entity(payload.address)
+                created = await self.address_repo.create_address(new_address)
+                data["address_id"] = created.id
 
         # Update the organization's fields
         if data:
