@@ -1,18 +1,12 @@
 from datetime import datetime
 from typing import List, Self
 from pydantic import BaseModel, ConfigDict, model_validator, field_validator, UUID4
+from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
 
 class AudienceInput(BaseModel):
     id: UUID4
     label: str | None = None
     model_config = ConfigDict(from_attributes=True)
-
-class AddressInput(BaseModel):
-    thoroughfare: str
-    box_number: str | None = None
-    post_name: str
-    post_code: str
-    country: str
 
 class CreateEventInput(BaseModel):
     name: str
@@ -24,7 +18,7 @@ class CreateEventInput(BaseModel):
     longitude: float | None = None
     parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
-    address:AddressInput | None = None
+    address:AddressCreateInput | None = None
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod
@@ -65,7 +59,7 @@ class UpdateEventInput(BaseModel):
     longitude: float | None = None
     parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
-    address:AddressInput | None = None
+    address:AddressUpdateInput | None = None
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod

@@ -2,6 +2,9 @@ from pydantic import BaseModel, EmailStr, field_validator, Field
 from datetime import date
 import re
 
+from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
+
+
 class ContactInput(BaseModel):
     # Email automatically validated by Pydantic
     email:EmailStr | None = None
@@ -20,20 +23,6 @@ class ContactInput(BaseModel):
 
     # website not included (people don't have web pages)
 
-class AddressInput(BaseModel):
-    thoroughfare: str
-    box_number: str | None = None
-    post_name: str
-    post_code: str
-    country: str
-
-class AddressUpdateInput(BaseModel):
-    thoroughfare: str | None = None
-    box_number: str | None = None
-    post_name: str | None = None
-    post_code: str | None = None
-    country: str | None = None
-
 class UserCreateInput(BaseModel):
     # List of first names (at least 1)
     first_names: list[str] = Field(..., min_length=1)
@@ -44,8 +33,8 @@ class UserCreateInput(BaseModel):
     quali: str | None = None
     is_legal_guardian: bool = False
     contact:ContactInput | None = None
-    home_address:AddressInput
-    residential_address:AddressInput | None = None
+    home_address:AddressCreateInput
+    residential_address:AddressCreateInput | None = None
 
     @field_validator("birth_date")
     def validate_birth_date(cls, v):
