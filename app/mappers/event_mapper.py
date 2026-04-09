@@ -11,7 +11,7 @@ def make_naive(dt: datetime | None) -> datetime | None:
 class EventMapper:
     @staticmethod
     def to_event_entity(payload: CreateEventInput) -> Event:
-        data = payload.model_dump(exclude_none=True, exclude={"audiences"})
+        data = payload.model_dump(exclude_none=True, exclude={"audiences", "address"})
         data["start_date"] = make_naive(payload.start_date)
         data["end_date"] = make_naive(payload.end_date)
         return Event(**data)
