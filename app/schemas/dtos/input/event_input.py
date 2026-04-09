@@ -7,6 +7,13 @@ class AudienceInput(BaseModel):
     label: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
+class AddressInput(BaseModel):
+    thoroughfare: str
+    box_number: str | None = None
+    post_name: str
+    post_code: str
+    country: str
+
 class CreateEventInput(BaseModel):
     name: str
     description: str | None = None
@@ -17,6 +24,7 @@ class CreateEventInput(BaseModel):
     longitude: float | None = None
     parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
+    address:AddressInput | None = None
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod

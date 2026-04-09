@@ -8,6 +8,16 @@ class AudienceOutput(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class AddressOutput(BaseModel):
+    id: UUID4
+    thoroughfare: str
+    box_number: str | None = None
+    post_name: str
+    post_code: str
+    country: str
+
+    model_config = {"from_attributes": True}
+
 class EventOutput(BaseModel):
     id:UUID4
     name:str
@@ -19,5 +29,6 @@ class EventOutput(BaseModel):
     longitude:float | None = None
     parent_id:UUID4 | None = None
     audiences:List[AudienceOutput]=[]
+    address:AddressOutput | None = None
 
     model_config = {"from_attributes": True}
