@@ -25,6 +25,12 @@ class Event(Base):
         ForeignKey("events.id"),
         nullable=True
     )
+    # Reference to the address
+    address_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("addresses.id"),
+        nullable=True
+    )
 
     # -------------------------
     # RELATIONSHIPS
@@ -35,7 +41,6 @@ class Event(Base):
         remote_side=lambda: [Event.id],
         back_populates="children"
     )
-
     # Sub-organizations
     children = relationship(
         "Event",
@@ -43,12 +48,17 @@ class Event(Base):
         cascade="all, delete",
         passive_deletes=True
     )
-
     # N-N relationshop with Audience
     audiences = relationship(
         "Audience",
         secondary="event_audience",
         back_populates="events"
+    )
+    address = relationship(
+        "Address",
+        foreign_keys=[address_id],
+        back_populates="events",
+        uselist=False
     )
 
 class Audience(Base):

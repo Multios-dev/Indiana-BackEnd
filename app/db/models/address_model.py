@@ -29,3 +29,7 @@ class Address(Base):
         foreign_keys="User.residential_address_id",
         back_populates="residential_address"
     )
+    events = relationship(
+        "Event",
+        back_populates="address"
+    )
