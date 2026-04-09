@@ -21,8 +21,8 @@ from uuid import UUID
 def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
     contact_repo = ContactRepository(db)
-    adress_repo = AddressRepository(db)
-    return OrganizationService(repo, contact_repo, adress_repo)
+    address_repo = AddressRepository(db)
+    return OrganizationService(repo, contact_repo, address_repo)
 
 class OrganizationService:
     def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository, address_repo: AddressRepository):
