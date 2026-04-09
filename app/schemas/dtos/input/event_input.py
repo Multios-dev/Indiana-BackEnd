@@ -65,6 +65,7 @@ class UpdateEventInput(BaseModel):
     longitude: float | None = None
     parent_id: UUID4 | None = None
     audiences: List[AudienceInput] | None = None
+    address:AddressInput | None = None
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod
