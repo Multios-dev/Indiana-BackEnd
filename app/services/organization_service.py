@@ -1,6 +1,7 @@
 import traceback
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
+from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from fastapi import Depends
@@ -20,12 +21,14 @@ from uuid import UUID
 def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
     contact_repo = ContactRepository(db)
-    return OrganizationService(repo, contact_repo)
+    adress_repo = AddressRepository(db)
+    return OrganizationService(repo, contact_repo, adress_repo)
 
 class OrganizationService:
-    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository):
+    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository, address_repo: AddressRepository):
         self.repo = repo
         self.contact_repo = contact_repo
+        self.address_repo = address_repo
 
     async def get_all_organizations(self, skip:int, limit:int, filters: dict | None = None):
         organizations = await self.repo.get_all_organizations(skip, limit, filters)
@@ -47,7 +50,15 @@ class OrganizationService:
                 raise InvalidParentOrganizationError()
 
         try:
+            if payload.address:
+                address = OrganizationMapper.to_address_entity(payload.address)
+                created_address = await self.address_repo.create_address(address)
+                address_id = created_address.id
+            else:
+                address_id = None
+
             organization = OrganizationMapper.to_organization_entity(payload)
+            organization.address_id = address_id
             created = await self.repo.create_organization(organization)
 
             contact = OrganizationMapper.to_contact_entity(payload, created.id)
