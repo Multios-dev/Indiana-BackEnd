@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
 from app.db.base import Base
 
 class Address(Base):
@@ -12,3 +13,19 @@ class Address(Base):
     post_code = Column(String, nullable=False)
     country = Column(String, nullable=False)
     # add the BeSt id later
+
+    organization = relationship(
+        "Organization",
+        back_populates="address",
+        uselist=False
+    )
+    home_users = relationship(
+        "User",
+        foreign_keys="User.home_address_id",
+        back_populates="home_address"
+    )
+    residential_users = relationship(
+        "User",
+        foreign_keys="User.residential_address_id",
+        back_populates="residential_address"
+    )
