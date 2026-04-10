@@ -104,15 +104,9 @@ class EventService:
 
         address_data = data.pop("address", None)
         if address_data is not None:
-            if event.address_id:
-                await self.address_repo.update_address(
-                    event.address_id,
-                    payload.address.model_dump(exclude_unset=True)
-                )
-            else:
-                new_address = EventMapper.to_address_entity(payload.address)
-                created_address = await self.address_repo.create_address(new_address)
-                data["address_id"] = created_address.id
+            new_address = EventMapper.to_address_entity(payload.address)
+            created_address = await self.address_repo.create_address(new_address)
+            data["address_id"] = created_address.id
 
         updated_event = await self.repo.update_event(event_id, data)
         if not updated_event:

@@ -109,12 +109,9 @@ class OrganizationService:
 
         address_data = data.pop("address", None)
         if address_data is not None:
-            if organization.address_id:
-                await self.address_repo.update_address(organization.address_id, address_data)
-            else:
-                new_address = OrganizationMapper.to_address_entity(payload.address)
-                created = await self.address_repo.create_address(new_address)
-                data["address_id"] = created.id
+            new_address = OrganizationMapper.to_address_entity(payload.address)
+            created = await self.address_repo.create_address(new_address)
+            data["address_id"] = created.id
 
         # Update the organization's fields
         if data:
