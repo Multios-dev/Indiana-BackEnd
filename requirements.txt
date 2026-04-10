@@ -6,3 +6,4 @@ sqlalchemy~=2.0.48
 pydantic[email]
 pydantic-settings~=2.13.1
 uvicorn==0.42.0
+pycountry~=26.2.16

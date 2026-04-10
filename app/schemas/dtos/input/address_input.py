@@ -25,6 +25,6 @@ class AddressUpdateInput(BaseModel):
     @field_validator("country")
     @classmethod
     def validate_country(cls, v):
-        if pycountry.countries.get(alpha_2=v) is None:
+        if v is not None and pycountry.countries.get(alpha_2=v) is None:
             raise ValueError("Country must be a valid ISO 3166-1 alpha-2 code (e.g. 'BE', 'FR')")
         return v
