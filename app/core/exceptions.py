@@ -32,6 +32,8 @@ class ContactNotFoundError(NotFoundError):
     detail = "Contact not found"
 class EventNotFoundError(NotFoundError):
     detail = "Event not found"
+class AddressNotFoundError(NotFoundError):
+    detail = "Address not found"
 
 # ==============================
 # 400 - BAD REQUEST
