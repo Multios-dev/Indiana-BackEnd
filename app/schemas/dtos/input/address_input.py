@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator
+import pycountry
 
 class AddressCreateInput(BaseModel):
     thoroughfare: str
@@ -10,8 +11,8 @@ class AddressCreateInput(BaseModel):
     @field_validator("country")
     @classmethod
     def validate_country(cls, v):
-        if not v.isupper() or len(v) != 2:
-            raise ValueError("Country must be an ISO 3166-1 alpha-2 code (e.g. 'BE', 'FR')")
+        if pycountry.countries.get(alpha_2=v) is None:
+            raise ValueError("Country must be a valid ISO 3166-1 alpha-2 code (e.g. 'BE', 'FR')")
         return v
 
 class AddressUpdateInput(BaseModel):
@@ -24,6 +25,6 @@ class AddressUpdateInput(BaseModel):
     @field_validator("country")
     @classmethod
     def validate_country(cls, v):
-        if not v.isupper() or len(v) != 2:
-            raise ValueError("Country must be an ISO 3166-1 alpha-2 code (e.g. 'BE', 'FR')")
+        if pycountry.countries.get(alpha_2=v) is None:
+            raise ValueError("Country must be a valid ISO 3166-1 alpha-2 code (e.g. 'BE', 'FR')")
         return v
