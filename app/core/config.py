@@ -2,12 +2,13 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Définir toutes les variables d'env dont l'app a besoin
+    # Environment variables
     DATABASE_URL: str
+    KEYCLOAK_URL: str = ""  # Empty by default — auth bypass enabled in dev mode
 
     class Config:
-        # Indique à pydantic d'aller lire dans le fichier .env
+        # Tell Pydantic to read from the .env file
         env_file = ".env"
 
-# Instance globale qu'on importe partout (évite de recréer la config à chaque fois)
+# Global instance imported everywhere
 settings = Settings()
