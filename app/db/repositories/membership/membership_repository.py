@@ -6,9 +6,9 @@ from sqlalchemy import select, and_
 from uuid import UUID
 
 class MembershipRepository(MembershipInterface):
-    def __init__(self, db:AsyncSession):
-        # On garde une référence à la session db
-        # Cette session permettra d'exécuter les requêtes
+    def __init__(self, db: AsyncSession):
+        # Keep a reference to the database session
+        # This session will be used to execute queries
         self.db = db
 
     async def get_memberships(self, skip:int, limit:int, filters:dict | None = None):
