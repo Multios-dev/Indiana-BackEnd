@@ -11,6 +11,9 @@ from app.db.init_db import init_db
 from app.db.session import engine
 from contextlib import asynccontextmanager
 
+from app.middlewares.auth_middleware import auth_middleware
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()  # startup
@@ -30,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Middlewares
+app.middleware("http")(auth_middleware)
 
 # Application routers
 app.include_router(user_router)
