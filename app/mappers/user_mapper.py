@@ -22,8 +22,8 @@ class UserMapper:
     @staticmethod
     def to_address_entity(address_payload) -> Address:
         """
-        Crée une entité Address à partir d'un DTO AddressInput.
-        On ne passe jamais l'id ici, PostgreSQL gère l'auto-increment.
+        Creates an Address entity from an AddressInput DTO.
+        The id is never passed here, PostgreSQL handles auto-increment.
         """
         data = address_payload.model_dump(exclude_none=True)
         return Address(**data)

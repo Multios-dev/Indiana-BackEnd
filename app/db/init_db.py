@@ -12,8 +12,8 @@ async def init_db():
         exists = result.scalar()
 
         if not exists:
-            print("Aucune table trouvée. Création...")
+            print("No tables found. Creating...")
             await conn.run_sync(Base.metadata.create_all)
-            print("Tables créées avec succès")
+            print("Tables created successfully")
         else:
-            print("Les tables existent déjà")
+            print("Tables already exist")
