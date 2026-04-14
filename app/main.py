@@ -12,6 +12,7 @@ from app.db.session import engine
 from contextlib import asynccontextmanager
 
 from app.middlewares.auth_middleware import auth_middleware
+from app.middlewares.exception_middleware import exception_middleware
 
 
 @asynccontextmanager
@@ -36,6 +37,7 @@ app.add_middleware(
 
 # Middlewares
 app.middleware("http")(auth_middleware)
+app.middleware("http")(exception_middleware)
 
 # Application routers
 app.include_router(user_router)
