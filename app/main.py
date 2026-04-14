@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
 from starlette.middleware.cors import CORSMiddleware
 from app.api.routes.users import router as user_router
 from app.api.routes.organizations import router as organization_router
@@ -19,6 +20,26 @@ async def lifespan(app: FastAPI):
 
 # FastAPI application creation
 app = FastAPI(lifespan=lifespan)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Indiana API",
+        version="1.0.0",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+        }
+    }
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # CORS Middleware
 app.add_middleware(

@@ -20,7 +20,10 @@ async def exception_middleware(request: Request, call_next):
     except AppException as e:
         resp = JSONResponse(
             status_code=e.status_code,
-            content={"detail": e.detail}
+            content={
+                "error": e.__class__.__name__,
+                "detail": e.detail
+            }
         )
         return add_cors_headers(resp, request.headers.get("origin"))
     except HTTPException as e:
