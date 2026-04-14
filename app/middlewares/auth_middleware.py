@@ -1,5 +1,7 @@
 from fastapi import Request, HTTPException
 
+from app.core.config import settings
+
 
 async def auth_middleware(request: Request, call_next):
     # Public routes -> no authentication required
