@@ -5,15 +5,11 @@ from app.api.routes.organizations import router as organization_router
 from app.api.routes.memberships import router as memberships_router
 from app.api.routes.events import router as events_router
 from app.api.routes.addresses import router as address_router
-from app.core.exceptions import AppException
-from app.core.redis.exception_handlers import app_exception_handler
 from app.db.init_db import init_db
 from app.db.session import engine
 from contextlib import asynccontextmanager
-
 from app.middlewares.auth_middleware import auth_middleware
 from app.middlewares.exception_middleware import exception_middleware
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,8 +19,6 @@ async def lifespan(app: FastAPI):
 
 # FastAPI application creation
 app = FastAPI(lifespan=lifespan)
-
-app.add_exception_handler(AppException, app_exception_handler)
 
 # CORS Middleware
 app.add_middleware(
