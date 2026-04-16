@@ -45,6 +45,7 @@ class UserRepository(UserInterface):
                 "last_name",
                 "birth_date",
                 "gender",
+                "nationality",
                 "totem",
                 "quali",
                 "is_legal_guardian",
