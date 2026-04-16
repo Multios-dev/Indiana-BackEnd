@@ -61,6 +61,15 @@ class ConflictingEventLocationError(BadRequestError):
     detail = "An event cannot have both an address and GPS coordinates"
 
 # ==============================
+# 403 - BAD REQUEST
+# ==============================
+class ForbiddenError(AppException):
+    status_code = 403
+    detail = "Forbidden"
+class PasswordError(AppException):
+    detail = "Invalid password"
+
+# ==============================
 # 500 - SERVER ERROR
 # ==============================
 class ServerError(AppException):
