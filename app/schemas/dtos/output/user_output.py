@@ -26,3 +26,7 @@ class UserOutput(BaseModel):
     residential_address: AddressOutput | None = None
 
     model_config = {"from_attributes": True}
+
+class UserLoginOutput(BaseModel):
+    id: UUID4
+    email:str
