@@ -16,7 +16,8 @@ class User(Base):
     totem = Column(String, nullable=True)                               # Scout totem
     quali = Column(String, nullable=True)                               # Qualification (internal role/status)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)  # Indicates whether the user is a parent/legal guardian
-
+    username = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=True)
     # Reference to home address (required)
     home_address_id = Column(
         UUID(as_uuid=True),
