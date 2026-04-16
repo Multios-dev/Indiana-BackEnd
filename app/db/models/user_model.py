@@ -12,6 +12,7 @@ class User(Base):
     last_name = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
+    nationality = Column(JSON, nullable=False)
     totem = Column(String, nullable=True)                               # Scout totem
     quali = Column(String, nullable=True)                               # Qualification (internal role/status)
     is_legal_guardian = Column(Boolean, default=False, nullable=False)  # Indicates whether the user is a parent/legal guardian
