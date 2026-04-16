@@ -4,7 +4,6 @@ import re
 
 from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
 
-
 class ContactInput(BaseModel):
     # Email automatically validated by Pydantic
     email:EmailStr | None = None
@@ -33,6 +32,8 @@ class UserCreateInput(BaseModel):
     totem: str | None = None
     quali: str | None = None
     is_legal_guardian: bool = False
+    username: str
+    password:str
     contact:ContactInput | None = None
     home_address:AddressCreateInput
     residential_address:AddressCreateInput | None = None
@@ -62,3 +63,7 @@ class UserUpdateInput(BaseModel):
         if v and v > date.today():
             raise ValueError("Invalid birth date")
         return v
+
+class UserLoginInput(BaseModel):
+    email: str | None = None
+    password: str | None = None
