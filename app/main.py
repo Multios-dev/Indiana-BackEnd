@@ -6,6 +6,7 @@ from app.api.routes.organizations import router as organization_router
 from app.api.routes.memberships import router as memberships_router
 from app.api.routes.events import router as events_router
 from app.api.routes.addresses import router as address_router
+from app.api.routes.auth import router as auth_router
 from app.db.init_db import init_db
 from app.db.session import engine
 from contextlib import asynccontextmanager
@@ -55,6 +56,7 @@ app.middleware("http")(auth_middleware)
 app.middleware("http")(exception_middleware)
 
 # Application routers
+app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(organization_router)
 app.include_router(memberships_router)
