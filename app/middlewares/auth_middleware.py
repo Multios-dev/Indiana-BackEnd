@@ -1,11 +1,9 @@
 from fastapi import Request, HTTPException
-
 from app.core.config import settings
-
 
 async def auth_middleware(request: Request, call_next):
     # Public routes -> no authentication required
-    public_paths = ("/docs", "/openapi.json", "/healthz")
+    public_paths = ("/docs", "/openapi.json", "/healthz", "/auth/login")
     if request.url.path in public_paths:
         return await call_next(request)
 

@@ -64,5 +64,5 @@ class UserUpdateInput(BaseModel):
         return v
 
 class UserLoginInput(BaseModel):
-    email: str | None = None
-    password: str | None = None
+    email: EmailStr
+    password: str
