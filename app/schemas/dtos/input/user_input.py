@@ -32,7 +32,6 @@ class UserCreateInput(BaseModel):
     totem: str | None = None
     quali: str | None = None
     is_legal_guardian: bool = False
-    username: str
     password:str
     contact:ContactInput | None = None
     home_address:AddressCreateInput
