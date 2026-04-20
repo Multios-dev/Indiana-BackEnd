@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.event.event_interface import EventInterface
 from app.db.models.event_model import Event, Audience
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from uuid import UUID
 
 class EventRepository(EventInterface):
@@ -104,6 +104,11 @@ class EventRepository(EventInterface):
         except Exception:
             await self.db.rollback()
             raise
+
+    async def count_events(self) -> int:
+        stmt = select(func.count()).select_from(Event)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def get_audiences_by_ids(self, audience_ids: list[int]):
         stmt = select(Audience).where(Audience.id.in_(audience_ids))
