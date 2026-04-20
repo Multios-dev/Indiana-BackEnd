@@ -119,3 +119,6 @@ class EventService:
             raise EventNotFoundError()
         await self.repo.delete_event(event_id)
         return { "message" : "Event deleted successfully" }
+
+    async def count_events(self) -> int:
+        return await self.repo.count_events()
