@@ -29,6 +29,12 @@ async def get_all_events(
     }
     return await service.get_all_events(pagination.skip, pagination.limit, filters)
 
+@router.get("/count", response_model=int, summary="Récupérer le nombre d'événements")
+async def count_events(
+        service: EventService = Depends(get_event_service)
+):
+    return await service.count_events()
+
 @router.get("/{event_id}", response_model=EventOutput, summary="Récupérer un événement spécifique")
 async def get_event_by_id(
         event_id:UUID,
