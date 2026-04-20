@@ -121,10 +121,6 @@ class UserService:
             return await self.repo.get_user_by_id(created_user.id)
 
         except Exception as e:
-
-
             print("⚠️ DatabaseError:", e)
-
             traceback.print_exc()
-
             raise DatabaseError() from e
