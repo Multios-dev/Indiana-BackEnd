@@ -8,8 +8,8 @@ class ContactOutput(BaseModel):
     phone:str | None = None
     website:str | None = None
 
-    # Allows Pydantic to read attributes from a SQLAlchemy object directly
-    # without this, Pydantic cannot convert an ORM object to a Pydantic model
+    # Enable ORM parsing (SQLAlchemy model instances) in Pydantic v2.
+    model_config = {"from_attributes": True}
 
 class UserOutput(BaseModel):
     id: UUID4
