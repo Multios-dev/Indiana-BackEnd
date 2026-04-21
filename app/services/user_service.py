@@ -10,7 +10,7 @@ from app.db.models.contact_model import Contact
 from app.core.exceptions import (
     UserNotFoundError,
     EmptyUpdatePayloadError,
-    DatabaseError, NotAllowedGuardianError, MaxGuardiansReachedError
+    DatabaseError, NotAllowedGuardianError, MaxGuardiansReachedError, RelationshipAlreadyExistsError
 )
 from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
@@ -135,6 +135,9 @@ class UserService:
             raise DatabaseError() from e
 
     async def add_guardian(self, guardian_id: UUID, minor_id: UUID):
+        existing = await self.guardian_repo.get_relationship(guardian_id, minor_id)
+        if existing:
+            raise RelationshipAlreadyExistsError()
         # check guardian validity
         guardian = await self.repo.get_user_by_id(guardian_id)
 

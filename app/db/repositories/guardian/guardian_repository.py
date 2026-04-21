@@ -40,3 +40,11 @@ class GuardianRepository(GuardianInterface):
 
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def get_relationship(self, guardian_id:UUID, minor_id:UUID) -> GuardianRelationship:
+        stmt = select(GuardianRelationship).where(
+            GuardianRelationship.guardian_id == guardian_id,
+            GuardianRelationship.minor_id == minor_id
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
