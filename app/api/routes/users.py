@@ -14,6 +14,13 @@ async def create_user(
 ):
     return await service.create_user(payload)
 
+@router.post("/guardianships")
+async def add_relation(
+        guardian_id: UUID, minor_id: UUID,
+        service: UserService = Depends()
+):
+    return await service.add_guardian(guardian_id, minor_id)
+
 @router.get("/", response_model = list[UserOutput], summary="Récupérer les utilisateurs")
 async def get_users(
         request: Request,
@@ -33,6 +40,20 @@ async def get_user(
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_user_by_id(user_id)
+
+@router.get("/users/{guardian_id}/minors")
+async def get_minors(
+        guardian_id: UUID,
+        service: UserService = Depends()
+):
+    return await service.get_minors(guardian_id)
+
+@router.get("/users/{minor_id}/guardians")
+async def get_guardians(
+        minor_id: UUID,
+        service: UserService = Depends()
+):
+    return await service.get_guardians(minor_id)
 
 @router.put("/{user_id}", response_model=UserOutput, summary="Modifier les données d'un utilisateur")
 async def update_user(
