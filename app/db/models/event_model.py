@@ -61,6 +61,7 @@ class Event(Base):
         uselist=False
     )
 
+# Mapping table
 class Audience(Base):
     __tablename__ = "audiences"
 

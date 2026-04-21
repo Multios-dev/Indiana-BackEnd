@@ -68,3 +68,35 @@ class User(Base):
         foreign_keys=[residential_address_id],
         uselist=False
     )
+
+    children = relationship(
+        "GuardianRelationship",
+        foreign_keys="GuardianRelationship.guardian_id",
+        back_populates="guardian",
+        cascade="all, delete-orphan"
+    )
+
+    guardians = relationship(
+        "GuardianRelationship",
+        foreign_keys="GuardianRelationship.minor_id",
+        back_populates="minor",
+        cascade="all, delete-orphan"
+    )
+
+# Mapping table
+class GuardianRelationship(Base):
+    __tablename__ = "guardian_relationships"
+    guardian_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    minor_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+
+    # Relationships
+    guardian = relationship(
+        "User",
+        foreign_keys=[guardian_id],
+        back_populates="children"
+    )
+    minor = relationship(
+        "User",
+        foreign_keys=[minor_id],
+        back_populates="guardians"
+    )
