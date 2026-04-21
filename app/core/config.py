@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     # Environment variables
     DATABASE_URL: str
     KEYCLOAK_URL: str = ""  # Empty by default — auth bypass enabled in dev mode
-    RESEND_API_KEY:str
-    MAIL_FROM:str
+    MAIL_FROM: str
+    GMAIL_APP_PASSWORD: str
 
     class Config:
         # Tell Pydantic to read from the .env file
