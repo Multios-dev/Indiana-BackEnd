@@ -8,6 +8,7 @@ from app.api.routes.memberships import router as memberships_router
 from app.api.routes.events import router as events_router
 from app.api.routes.addresses import router as address_router
 from app.api.routes.auth import router as auth_router
+from app.api.routes.debug import router as email_router
 from app.db.init_db import init_db
 from app.db.session import engine
 from contextlib import asynccontextmanager
@@ -66,3 +67,4 @@ app.include_router(organization_router)
 app.include_router(memberships_router)
 app.include_router(events_router)
 app.include_router(address_router)
+app.include_router(email_router)
