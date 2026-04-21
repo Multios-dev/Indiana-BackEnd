@@ -4,6 +4,7 @@ from app.schemas.dtos.output.user_output import UserOutput
 from app.schemas.pagination import PaginationParams
 from app.services.user_service import UserService, get_user_service
 from uuid import UUID
+from typing import List
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -22,7 +23,7 @@ async def add_guardianship(
 ):
     return await service.add_guardian(guardian_id, minor_id)
 
-@router.get("/", response_model = list[UserOutput], summary="Récupérer les utilisateurs")
+@router.get("/", response_model = List[UserOutput], summary="Récupérer les utilisateurs")
 async def get_users(
         request: Request,
         pagination: PaginationParams = Depends(),
@@ -42,14 +43,14 @@ async def get_user(
 ):
     return await service.get_user_by_id(user_id)
 
-@router.get("/{guardian_id}/minors")
+@router.get("/{guardian_id}/minors", response_model=List[UserOutput], summary="Récupérer les mineurs sous un responsable légal")
 async def get_minors(
         guardian_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_minors(guardian_id)
 
-@router.get("/{minor_id}/guardians")
+@router.get("/{minor_id}/guardians", response_model=List[UserOutput], summary="Récupérer les responsables légaux d'un mineur")
 async def get_guardians(
         minor_id: UUID,
         service: UserService = Depends(get_user_service)
