@@ -10,7 +10,7 @@ from app.db.models.contact_model import Contact
 from app.core.exceptions import (
     UserNotFoundError,
     EmptyUpdatePayloadError,
-    DatabaseError
+    DatabaseError, NotAllowedGuardianError, MaxGuardiansReachedError
 )
 from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
@@ -139,13 +139,13 @@ class UserService:
         guardian = await self.repo.get_user_by_id(guardian_id)
 
         if not guardian.is_legal_guardian:
-            raise Exception("Not a legal guardian")
+            raise NotAllowedGuardianError()
 
         # check max 2 guardians
         guardians = await self.guardian_repo.get_guardians_by_minor(minor_id)
 
         if len(guardians) >= 2:
-            raise Exception("A minor cannot have more than 2 guardians")
+            raise MaxGuardiansReachedError()
 
         return await self.guardian_repo.add_guardian_relationship(
             guardian_id, minor_id
