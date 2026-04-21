@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
+from app.db.repositories.guardian.guardian_repository import GuardianRepository
 from app.db.session import get_db
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
@@ -20,14 +21,22 @@ def get_user_service(db: AsyncSession = Depends(get_db)):
     repo = UserRepository(db)
     contact_repo = ContactRepository(db)
     address_repo = AddressRepository(db)
-    return UserService(repo, contact_repo, address_repo)
+    guardian_repo = GuardianRepository(db)
+    return UserService(repo, contact_repo, address_repo, guardian_repo)
 
 class UserService:
-    def __init__(self, repo:UserRepository, contact_repo:ContactRepository, address_repo:AddressRepository):
+    def __init__(
+            self,
+            repo:UserRepository,
+            contact_repo:ContactRepository,
+            address_repo:AddressRepository,
+            guardian_repo:GuardianRepository
+    ):
         # Repository injection
         self.repo = repo
         self.contact_repo = contact_repo
         self.address_repo = address_repo
+        self.guardian_repo = guardian_repo
 
     async def get_users(self, skip:int, limit:int, filters:dict | None = None):
         users = await self.repo.get_users(skip, limit, filters)
@@ -124,3 +133,14 @@ class UserService:
             print("⚠️ DatabaseError:", e)
             traceback.print_exc()
             raise DatabaseError() from e
+
+    async def add_guardian(self, guardian_id: UUID, minor_id: UUID):
+        return await self.guardian_repo.add_guardian_relationship(
+            guardian_id, minor_id
+        )
+
+    async def get_minors(self, guardian_id: UUID):
+        return await self.guardian_repo.get_minors_by_guardian(guardian_id)
+
+    async def get_guardians(self, minor_id:UUID):
+        return await self.guardian_repo.get_guardians_by_minor(minor_id)
