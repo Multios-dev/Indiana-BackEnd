@@ -135,6 +135,18 @@ class UserService:
             raise DatabaseError() from e
 
     async def add_guardian(self, guardian_id: UUID, minor_id: UUID):
+        # check guardian validity
+        guardian = await self.repo.get_user_by_id(guardian_id)
+
+        if not guardian.is_legal_guardian:
+            raise Exception("Not a legal guardian")
+
+        # check max 2 guardians
+        guardians = await self.guardian_repo.get_guardians_by_minor(minor_id)
+
+        if len(guardians) >= 2:
+            raise Exception("A minor cannot have more than 2 guardians")
+
         return await self.guardian_repo.add_guardian_relationship(
             guardian_id, minor_id
         )
