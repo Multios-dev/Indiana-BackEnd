@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Request, Depends
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 from app.schemas.dtos.output.membership_output import MembershipOutput
@@ -16,16 +18,18 @@ async def create_membership(
 
 @router.get("/", response_model=list[MembershipOutput], summary="Récupérer tous les mandats")
 async def get_memberships(
-        request: Request,
         pagination: PaginationParams = Depends(),
+        user_id: Optional[UUID] = None,
+        organization_id: Optional[UUID] = None,
+        role: Optional[str] = None,
         service: MembershipService = Depends(get_membership_service)
 ):
-    filters = {
-        key: value
-        for key, value in request.query_params.items()
-        if key not in {"skip", "limit"}
-    }
-    return await service.get_memberships(pagination.skip, pagination.limit, filters)
+    filters = {}
+    if user_id: filters["user_id"] = user_id
+    if organization_id: filters["organization_id"] = organization_id
+    if role: filters["role"] = role
+
+    return await service.get_memberships(pagination.skip, pagination.limit, filters or None)
 
 @router.get("/{membership_id}", response_model=MembershipOutput, summary="Récupérer un mandat spécifique")
 async def get_membership(
