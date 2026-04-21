@@ -66,9 +66,19 @@ class ConflictingEventLocationError(BadRequestError):
 class ForbiddenError(AppException):
     status_code = 403
     detail = "Forbidden"
-class PasswordError(AppException):
+class PasswordError(ForbiddenError):
     detail = "Invalid password"
+class NotAllowedGuardianError(ForbiddenError):
+    detail = "Not a legal guardian"
 
+# ==============================
+# 409 - CONFLICT
+# ==============================
+class ConflictError(AppException):
+    status_code = 409
+    detail = "Conflict"
+class MaxGuardiansReachedError(ConflictError):
+    detail = "A minor cannot have more than 2 guardians"
 # ==============================
 # 500 - SERVER ERROR
 # ==============================
