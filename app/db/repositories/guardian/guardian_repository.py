@@ -5,6 +5,7 @@ from app.db.models.user_model import GuardianRelationship
 from app.db.repositories.guardian.guardian_interface import GuardianInterface
 from app.db.models.user_model import User
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 class GuardianRepository(GuardianInterface):
     def __init__(self, db:AsyncSession):
@@ -26,6 +27,11 @@ class GuardianRepository(GuardianInterface):
             select(User)
             .join(GuardianRelationship, User.id == GuardianRelationship.minor_id)
             .where(GuardianRelationship.guardian_id == guardian_id)
+            .options(
+                selectinload(User.contact),
+                selectinload(User.home_address),
+                selectinload(User.residential_address),
+            )
         )
 
         result = await self.db.execute(stmt)
@@ -36,6 +42,11 @@ class GuardianRepository(GuardianInterface):
             select(User)
             .join(GuardianRelationship, User.id == GuardianRelationship.guardian_id)
             .where(GuardianRelationship.minor_id == minor_id)
+            .options(
+                selectinload(User.contact),
+                selectinload(User.home_address),
+                selectinload(User.residential_address),
+            )
         )
 
         result = await self.db.execute(stmt)
