@@ -1,6 +1,7 @@
 ﻿from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from starlette.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.api.routes.users import router as user_router
 from app.api.routes.organizations import router as organization_router
 from app.api.routes.memberships import router as memberships_router
@@ -21,6 +22,9 @@ async def lifespan(app: FastAPI):
 
 # FastAPI application creation
 app = FastAPI(lifespan=lifespan)
+
+# Fix for HTTPS behind Istio/Proxy
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 def custom_openapi():
     if app.openapi_schema:
