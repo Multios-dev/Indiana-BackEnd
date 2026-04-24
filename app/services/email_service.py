@@ -14,7 +14,8 @@ def get_email_service():
     return EmailService()
 
 class EmailService:
-    async def send_registration_email(self, to: str, first_name: str) -> None:
+    @staticmethod
+    async def send_registration_email(to: str, first_name: str) -> None:
         try:
             html = templates.get_template("registration_template.html").render(first_name=first_name)
             message = MIMEMultipart("alternative")
