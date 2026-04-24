@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, BackgroundTasks
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 from app.schemas.dtos.output.user_output import UserOutput
 from app.schemas.pagination import PaginationParams
@@ -10,9 +10,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.post("/", response_model=UserOutput, summary="Créer un utilisateur")
 async def create_user(
         payload: UserCreateInput,
+        background_tasks: BackgroundTasks,
         service: UserService = Depends(get_user_service),
 ):
-    return await service.create_user(payload)
+    return await service.create_user(payload, background_tasks)
 
 @router.get("/", response_model = list[UserOutput], summary="Récupérer les utilisateurs")
 async def get_users(
