@@ -35,3 +35,24 @@ class EmailService:
         except Exception as e:
             print(e)
             raise
+
+    async def send_invite_event_email(to: str, first_name: str) -> None:
+        try:
+            html = templates.get_template("registration_template.html").render(first_name=first_name)
+            message = MIMEMultipart("alternative")
+            message["From"] = settings.MAIL_FROM
+            message["To"] = to
+            message["Subject"] = "Invitation"
+            message.attach(MIMEText(html, "html"))
+
+            await aiosmtplib.send(
+                message,
+                hostname="smtp.gmail.com",
+                port=587,
+                username=settings.MAIL_FROM,
+                password=settings.GMAIL_APP_PASSWORD,
+                start_tls=True,
+                )
+        except Exception as e:
+            print(e)
+            raise
