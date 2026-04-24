@@ -36,6 +36,7 @@ class EmailService:
             print(e)
             raise
 
+    @staticmethod
     async def send_invite_event_email(to: str, first_name: str) -> None:
         try:
             html = templates.get_template("registration_template.html").render(first_name=first_name)
