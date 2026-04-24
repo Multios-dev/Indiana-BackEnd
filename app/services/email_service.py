@@ -15,19 +15,22 @@ def get_email_service():
 
 class EmailService:
     async def send_registration_email(self, to: str, first_name: str) -> None:
-        html = templates.get_template("registration_template.html").render(first_name=first_name)
+        try:
+            html = templates.get_template("registration_template.html").render(first_name=first_name)
+            message = MIMEMultipart("alternative")
+            message["From"] = settings.MAIL_FROM
+            message["To"] = to
+            message["Subject"] = "Bienvenue sur Indiana !"
+            message.attach(MIMEText(html, "html"))
 
-        message = MIMEMultipart("alternative")
-        message["From"] = settings.MAIL_FROM
-        message["To"] = to
-        message["Subject"] = "Bienvenue sur Indiana !"
-        message.attach(MIMEText(html, "html"))
-
-        await aiosmtplib.send(
-            message,
-            hostname="smtp.gmail.com",
-            port=587,
-            username=settings.MAIL_FROM,
-            password=settings.GMAIL_APP_PASSWORD,
-            start_tls=True,
-        )
+            await aiosmtplib.send(
+                message,
+                hostname="smtp.gmail.com",
+                port=587,
+                username=settings.MAIL_FROM,
+                password=settings.GMAIL_APP_PASSWORD,
+                start_tls=True,
+            )
+        except Exception as e:
+            print(e)
+            raise
