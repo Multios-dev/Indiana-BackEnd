@@ -40,7 +40,7 @@ class EmailService:
     async def send_invitation_event_email(to: str, first_name: str, inviter_name: str, event_name: str, event_date: str,
                                           event_location: str) -> None:
         try:
-            html = templates.get_template("invitation_template.html").render(
+            html = templates.get_template("invite_template.html").render(
                 first_name=first_name,
                 inviter_name=inviter_name,
                 event_name=event_name,
