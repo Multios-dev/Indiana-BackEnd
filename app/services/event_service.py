@@ -166,8 +166,8 @@ class EventService:
                     first_name=invited.first_names[0],
                     inviter_name=inviter.first_names[0],
                     event_name=event.name,
-                    event_date=event.date.strftime("%d/%m/%Y à %Hh%M"),
-                    event_location=event.location,
+                    event_date=event.start_date.strftime("%d/%m/%Y à %Hh%M"),
+                    event_location=event.address,
                 )
 
             return { "message" : "Invitation sent" }
