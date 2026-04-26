@@ -37,13 +37,20 @@ class EmailService:
             raise
 
     @staticmethod
-    async def send_invite_event_email(to: str, first_name: str) -> None:
+    async def send_invitation_event_email(to: str, first_name: str, inviter_name: str, event_name: str, event_date: str,
+                                          event_location: str) -> None:
         try:
-            html = templates.get_template("registration_template.html").render(first_name=first_name)
+            html = templates.get_template("invitation_template.html").render(
+                first_name=first_name,
+                inviter_name=inviter_name,
+                event_name=event_name,
+                event_date=event_date,
+                event_location=event_location,
+            )
             message = MIMEMultipart("alternative")
             message["From"] = settings.MAIL_FROM
             message["To"] = to
-            message["Subject"] = "Invitation"
+            message["Subject"] = "Tu as été invité(e) à un événement !"
             message.attach(MIMEText(html, "html"))
 
             await aiosmtplib.send(
@@ -53,7 +60,7 @@ class EmailService:
                 username=settings.MAIL_FROM,
                 password=settings.GMAIL_APP_PASSWORD,
                 start_tls=True,
-                )
+            )
         except Exception as e:
             print(e)
             raise

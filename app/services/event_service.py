@@ -161,7 +161,7 @@ class EventService:
             email = invited.contact.email if invited.contact else None
             if email:
                 background_tasks.add_task(
-                    self.email_service.send_invitation_email,
+                    self.email_service.send_invitation_event_email,
                     to=email,
                     first_name=invited.first_names[0],
                     inviter_name=inviter.first_names[0],
