@@ -14,31 +14,34 @@ def get_email_service():
     return EmailService()
 
 class EmailService:
+
+    @staticmethod
+    async def _send_email(to: str, subject: str, html: str) -> None:
+        message = MIMEMultipart("alternative")
+        message["From"] = settings.MAIL_FROM
+        message["To"] = to
+        message["Subject"] = subject
+        message.attach(MIMEText(html, "html"))
+
+        await aiosmtplib.send(
+            message,
+            hostname="smtp.gmail.com",
+            port=587,
+            username=settings.MAIL_FROM,
+            password=settings.GMAIL_APP_PASSWORD,
+            start_tls=True,
+        )
+
     @staticmethod
     async def send_registration_email(to: str, first_name: str) -> None:
         try:
             html = templates.get_template("registration_template.html").render(first_name=first_name)
-            message = MIMEMultipart("alternative")
-            message["From"] = settings.MAIL_FROM
-            message["To"] = to
-            message["Subject"] = "Bienvenue sur Indiana !"
-            message.attach(MIMEText(html, "html"))
-
-            await aiosmtplib.send(
-                message,
-                hostname="smtp.gmail.com",
-                port=587,
-                username=settings.MAIL_FROM,
-                password=settings.GMAIL_APP_PASSWORD,
-                start_tls=True,
-            )
+            await EmailService._send_email(to, "Bienvenue sur Indiana !", html)
         except Exception as e:
-            print(e)
             raise
 
     @staticmethod
-    async def send_invitation_event_email(to: str, first_name: str, inviter_name: str, event_name: str, event_date: str,
-                                          event_location: str) -> None:
+    async def send_invitation_event_email(to: str, first_name: str, inviter_name: str, event_name: str, event_date: str, event_location: str) -> None:
         try:
             html = templates.get_template("invite_template.html").render(
                 first_name=first_name,
@@ -47,20 +50,6 @@ class EmailService:
                 event_date=event_date,
                 event_location=event_location,
             )
-            message = MIMEMultipart("alternative")
-            message["From"] = settings.MAIL_FROM
-            message["To"] = to
-            message["Subject"] = "Tu as été invité(e) à un événement !"
-            message.attach(MIMEText(html, "html"))
-
-            await aiosmtplib.send(
-                message,
-                hostname="smtp.gmail.com",
-                port=587,
-                username=settings.MAIL_FROM,
-                password=settings.GMAIL_APP_PASSWORD,
-                start_tls=True,
-            )
+            await EmailService._send_email(to, "Tu as été invité(e) à un événement !", html)
         except Exception as e:
-            print(e)
             raise
