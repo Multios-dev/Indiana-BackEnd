@@ -44,7 +44,6 @@ class EmailService:
             start_tls=True,
         )
 
-    @staticmethod
     async def send_registration_email(to: str, first_name: str) -> None:
         try:
             html = templates.get_template("registration_template.html").render(first_name=first_name)
@@ -53,7 +52,6 @@ class EmailService:
             print(e)
             raise
 
-    @staticmethod
     async def send_invitation_event_email(self, payload: InvitationEmailInput) -> None:
         try:
             event = await self.event_repo.get_event_by_id(payload.event_id)
