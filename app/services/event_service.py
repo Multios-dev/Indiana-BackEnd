@@ -1,5 +1,4 @@
 import traceback
-
 from app.core.exceptions import EventNotFoundError, InvalidParentEventError, DatabaseError, EmptyUpdatePayloadError, \
     SelfParentEventError, ConflictingEventLocationError, UserInvitedNotFoundError, UserInviterNotFoundError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +8,7 @@ from app.db.repositories.event.event_repository import EventRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 from app.mappers.event_mapper import EventMapper
-from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput
+from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput, InvitationEmailInput
 from datetime import datetime
 from uuid import UUID
 
@@ -142,35 +141,26 @@ class EventService:
 
     async def invite_to_event(
             self,
-            event_id:UUID,
-            invited_id:UUID,
-            inviter_id:UUID,
+            payload:InvitationEmailInput,
             background_tasks: BackgroundTasks
     ):
         try:
-            event = await self.repo.get_event_by_id(event_id)
+            event = await self.repo.get_event_by_id(payload.event_id)
             if not event:
                 raise EventNotFoundError()
-            invited = await self.user_repo.get_user_by_id(invited_id)
+            invited = await self.user_repo.get_user_by_id(payload.invited_id)
             if not invited:
                 raise UserInvitedNotFoundError()
-            inviter = await self.user_repo.get_user_by_id(inviter_id)
+            inviter = await self.user_repo.get_user_by_id(payload.inviter_id)
             if not inviter:
                 raise UserInviterNotFoundError()
 
-            email = invited.contact.email if invited.contact else None
-            if email:
-                background_tasks.add_task(
-                    self.email_service.send_invitation_event_email,
-                    to=email,
-                    first_name=invited.first_names[0],
-                    inviter_name=inviter.first_names[0],
-                    event_name=event.name,
-                    event_date=event.start_date.strftime("%d/%m/%Y à %Hh%M"),
-                    event_location=event.address,
-                )
+            background_tasks.add_task(
+                self.email_service.send_invitation_event_email,
+                payload
+            )
 
-            return { "message" : "Invitation sent" }
+            return {"message": "Invitation sent"}
 
         except (EventNotFoundError, UserInvitedNotFoundError, UserInviterNotFoundError):
             raise
