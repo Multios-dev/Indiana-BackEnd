@@ -44,6 +44,7 @@ class EmailService:
             start_tls=True,
         )
 
+    @staticmethod
     async def send_registration_email(to: str, first_name: str) -> None:
         try:
             html = templates.get_template("registration_template.html").render(first_name=first_name)
