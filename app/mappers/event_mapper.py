@@ -1,7 +1,8 @@
 from app.db.models.address_model import Address
 from app.db.models.event_model import Event
-from app.schemas.dtos.input.event_input import CreateEventInput
+from app.schemas.dtos.input.event_input import CreateEventInput, InvitationEmailInput
 from datetime import datetime
+from uuid import UUID
 
 def make_naive(dt: datetime | None) -> datetime | None:
     if dt is None:
@@ -20,3 +21,7 @@ class EventMapper:
     def to_address_entity(address_payload) -> Address | None:
         data = address_payload.model_dump(exclude_none=True)
         return Address(**data)
+
+    @staticmethod
+    def to_invitation_input(event_id: UUID, invited_id: UUID, inviter_id: UUID) -> InvitationEmailInput:
+        return InvitationEmailInput(event_id=event_id, invited_id=invited_id, inviter_id=inviter_id)

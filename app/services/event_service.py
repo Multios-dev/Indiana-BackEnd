@@ -1,20 +1,28 @@
+import traceback
 from app.core.exceptions import EventNotFoundError, InvalidParentEventError, DatabaseError, EmptyUpdatePayloadError, \
-    SelfParentEventError, ConflictingEventLocationError
+    SelfParentEventError, ConflictingEventLocationError, UserInvitedNotFoundError, UserInviterNotFoundError
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
-
+from fastapi import Depends, BackgroundTasks
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.event.event_repository import EventRepository
+from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 from app.mappers.event_mapper import EventMapper
-from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput
+from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput, InvitationEmailInput
 from datetime import datetime
 from uuid import UUID
 
-def get_event_service(db: AsyncSession = Depends(get_db)):
+from app.services.email_service import EmailService, get_email_service
+
+
+def get_event_service(
+        db: AsyncSession = Depends(get_db),
+        email_service: EmailService = Depends(get_email_service),
+):
     repo = EventRepository(db)
     address_repo = AddressRepository(db)
-    return EventService(repo, address_repo)
+    user_repo = UserRepository(db)
+    return EventService(repo, address_repo, user_repo, email_service)
 
 def make_naive(dt: datetime | None) -> datetime | None:
     if dt is None:
@@ -23,9 +31,17 @@ def make_naive(dt: datetime | None) -> datetime | None:
     return dt.replace(tzinfo=None)
 
 class EventService:
-    def __init__(self, repo:EventRepository, address_repo:AddressRepository):
+    def __init__(
+            self,
+            repo:EventRepository,
+            address_repo:AddressRepository,
+            user_repo:UserRepository,
+            email_service: EmailService
+    ):
         self.repo = repo
         self.address_repo = address_repo
+        self.user_repo = user_repo
+        self.email_service = email_service
 
     async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
         events = await self.repo.get_all_events(skip, limit, filters)
@@ -122,3 +138,32 @@ class EventService:
 
     async def count_events(self) -> int:
         return await self.repo.count_events()
+
+    async def invite_to_event(
+            self,
+            payload:InvitationEmailInput,
+            background_tasks: BackgroundTasks
+    ):
+        try:
+            event = await self.repo.get_event_by_id(payload.event_id)
+            if not event:
+                raise EventNotFoundError()
+            invited = await self.user_repo.get_user_by_id(payload.invited_id)
+            if not invited:
+                raise UserInvitedNotFoundError()
+            inviter = await self.user_repo.get_user_by_id(payload.inviter_id)
+            if not inviter:
+                raise UserInviterNotFoundError()
+
+            background_tasks.add_task(
+                self.email_service.send_invitation_event_email,
+                payload
+            )
+
+            return {"message": "Invitation sent"}
+
+        except (EventNotFoundError, UserInvitedNotFoundError, UserInviterNotFoundError):
+            raise
+        except Exception as e:
+            traceback.print_exc()
+            raise DatabaseError() from e

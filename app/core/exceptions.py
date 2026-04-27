@@ -34,6 +34,10 @@ class EventNotFoundError(NotFoundError):
     detail = "Event not found"
 class AddressNotFoundError(NotFoundError):
     detail = "Address not found"
+class UserInvitedNotFoundError(NotFoundError):
+    detail = "User invited not found"
+class UserInviterNotFoundError(NotFoundError):
+    detail = "User inviter not found"
 
 # ==============================
 # 400 - BAD REQUEST

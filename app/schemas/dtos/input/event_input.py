@@ -83,3 +83,8 @@ class UpdateEventInput(BaseModel):
         return self
 
     model_config = ConfigDict(from_attributes=True)
+
+class InvitationEmailInput(BaseModel):
+    event_id:UUID4
+    invited_id:UUID4
+    inviter_id:UUID4
