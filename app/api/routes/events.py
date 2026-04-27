@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.params import Depends
-from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput
+from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput, InvitationEmailInput
 from app.schemas.dtos.output.event_output import EventOutput
 from app.schemas.pagination import PaginationParams
 from app.services.event_service import get_event_service, EventService
@@ -18,13 +18,11 @@ async def create_event(
 
 @router.post("/{event_id}/invite", response_model=dict, summary="Inviter un utilisateur à un événement")
 async def invite_to_event(
-        event_id: UUID,
-        invited_id: UUID,
-        inviter_id: UUID,
+        payload: InvitationEmailInput,
         background_tasks: BackgroundTasks,
         service: EventService = Depends(get_event_service)
 ):
-    return await service.invite_to_event(event_id, invited_id, inviter_id, background_tasks)
+    return await service.invite_to_event(payload, background_tasks)
 
 @router.get("/", response_model=List[EventOutput], summary="Récupérer tous les événements")
 async def get_all_events(
