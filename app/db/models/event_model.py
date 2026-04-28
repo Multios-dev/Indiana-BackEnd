@@ -61,6 +61,8 @@ class Event(Base):
         uselist=False
     )
 
+    participations = relationship("Participation", back_populates="event")
+
 # Mapping table
 class Audience(Base):
     __tablename__ = "audiences"
