@@ -1,0 +1,14 @@
+from uuid import UUID
+from pydantic import BaseModel, field_validator
+from decimal import Decimal
+
+class ParticipationInvitationInput(BaseModel):
+    user_id:UUID
+    event_id:UUID
+    price:Decimal
+
+    @field_validator("price")
+    def validate_price(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Price cannot be negative")
+        return v

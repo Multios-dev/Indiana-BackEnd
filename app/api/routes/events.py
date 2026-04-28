@@ -1,11 +1,13 @@
 from typing import List
-from fastapi import APIRouter, Request, BackgroundTasks
+from fastapi import APIRouter, Request
 from fastapi.params import Depends
-from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput, InvitationEmailInput
+from app.schemas.dtos.input.event_input import CreateEventInput, UpdateEventInput
+from app.schemas.dtos.input.participation_input import ParticipationInvitationInput
 from app.schemas.dtos.output.event_output import EventOutput
 from app.schemas.pagination import PaginationParams
 from app.services.event_service import get_event_service, EventService
 from uuid import UUID
+from app.services.participation_service import ParticipationService, get_participation_service
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -18,11 +20,10 @@ async def create_event(
 
 @router.post("/{event_id}/invite", response_model=dict, summary="Inviter un utilisateur à un événement")
 async def invite_to_event(
-        payload: InvitationEmailInput,
-        background_tasks: BackgroundTasks,
-        service: EventService = Depends(get_event_service)
+        payload: ParticipationInvitationInput,
+        service: ParticipationService = Depends(get_participation_service)
 ):
-    return await service.invite_to_event(payload, background_tasks)
+    return await service.invite_to_event(payload)
 
 @router.get("/", response_model=List[EventOutput], summary="Récupérer tous les événements")
 async def get_all_events(
