@@ -83,6 +83,9 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    participations = relationship("Participation", back_populates="user")
+
+
 # Mapping table
 class GuardianRelationship(Base):
     __tablename__ = "guardian_relationships"
