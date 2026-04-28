@@ -85,6 +85,8 @@ class MaxGuardiansReachedError(ConflictError):
     detail = "A minor cannot have more than 2 guardians"
 class RelationshipAlreadyExistsError(ConflictError):
     detail = "This guardian is already assigned to this minor"
+class AlreadyInvitedError(ConflictError):
+    detail = "User is already invited to this event"
 # ==============================
 # 500 - SERVER ERROR
 # ==============================
