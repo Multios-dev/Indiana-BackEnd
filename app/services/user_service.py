@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
@@ -16,13 +16,17 @@ from app.mappers.user_mapper import UserMapper
 from app.schemas.dtos.input.user_input import UserCreateInput, UserUpdateInput
 from uuid import UUID
 import traceback
+from app.services.email_service import EmailService, get_email_service
 
-def get_user_service(db: AsyncSession = Depends(get_db)):
+def get_user_service(
+        db: AsyncSession = Depends(get_db),
+        email_service: EmailService = Depends(get_email_service)
+):
     repo = UserRepository(db)
     contact_repo = ContactRepository(db)
     address_repo = AddressRepository(db)
     guardian_repo = GuardianRepository(db)
-    return UserService(repo, contact_repo, address_repo, guardian_repo)
+    return UserService(repo, contact_repo, address_repo, guardian_repo, email_service)
 
 class UserService:
     def __init__(
@@ -30,13 +34,15 @@ class UserService:
             repo:UserRepository,
             contact_repo:ContactRepository,
             address_repo:AddressRepository,
-            guardian_repo:GuardianRepository
+            guardian_repo:GuardianRepository,
+            email_service:EmailService
     ):
         # Repository injection
         self.repo = repo
         self.contact_repo = contact_repo
         self.address_repo = address_repo
         self.guardian_repo = guardian_repo
+        self.email_service = email_service
 
     async def get_users(self, skip:int, limit:int, filters:dict | None = None):
         users = await self.repo.get_users(skip, limit, filters)
@@ -101,8 +107,7 @@ class UserService:
             raise UserNotFoundError()
         return {"message": "User deleted successfully"}
 
-
-    async def create_user(self, payload: UserCreateInput) -> User:
+    async def create_user(self, payload: UserCreateInput, background_tasks: BackgroundTasks) -> User:
         try:
             if payload.home_address:
                 home_address = UserMapper.to_address_entity(payload.home_address)
@@ -127,7 +132,18 @@ class UserService:
             if contact:
                 await self.contact_repo.create_contact(contact)
 
-            return await self.repo.get_user_by_id(created_user.id)
+            full_user = await self.repo.get_user_by_id(created_user.id)
+
+            email = payload.contact.email if payload.contact and payload.contact.email else None
+            if email:
+                background_tasks.add_task(
+                    self.email_service.send_registration_email,
+                    to=email,
+                    last_name=created_user.last_name,
+                    first_name=created_user.first_names[0],
+                )
+
+            return full_user
 
         except Exception as e:
             print("⚠️ DatabaseError:", e)
