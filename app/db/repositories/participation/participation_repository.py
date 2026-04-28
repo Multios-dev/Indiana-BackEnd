@@ -19,4 +19,4 @@ class ParticipationRepository(ParticipationInterface):
                 .where(Participation.user_id == user_id, Participation.event_id == event_id))
 
         result = await self.db.execute(stmt)
-        return result.scalar_one()
+        return result.scalar_one_or_none()
