@@ -1,10 +1,12 @@
 from uuid import UUID
+from typing import Optional
 from pydantic import BaseModel, field_validator
 from decimal import Decimal
 
 class ParticipationInvitationInput(BaseModel):
     user_id:UUID
     event_id:UUID
+    role:str | None = None
     price:Decimal
 
     @field_validator("price")
