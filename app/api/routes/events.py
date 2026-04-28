@@ -18,7 +18,7 @@ async def create_event(
 ):
     return await service.create_event(payload)
 
-@router.post("/{event_id}/invite", response_model=dict, summary="Inviter un utilisateur à un événement")
+@router.post("/invite", response_model=dict, summary="Inviter un utilisateur à un événement")
 async def invite_to_event(
         payload: ParticipationInvitationInput,
         service: ParticipationService = Depends(get_participation_service)

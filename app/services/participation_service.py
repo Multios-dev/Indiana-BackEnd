@@ -1,6 +1,5 @@
 import traceback
 from app.core.exceptions import EventNotFoundError, UserNotFoundError, AlreadyInvitedError, DatabaseError
-from app.db.models.participation_model import Participation
 from app.db.repositories.event.event_repository import EventRepository
 from app.db.repositories.participation.participation_repository import ParticipationRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +14,7 @@ def get_participation_service(db:AsyncSession = Depends(get_db)):
     participation_repo = ParticipationRepository(db)
     event_repo = EventRepository(db)
     user_repo = UserRepository(db)
-    return ParticipationService(participation_repo)
+    return ParticipationService(participation_repo, event_repo, user_repo)
 
 class ParticipationService:
     def __init__(
