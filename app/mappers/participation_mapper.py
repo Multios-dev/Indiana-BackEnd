@@ -5,4 +5,7 @@ class ParticipationMapper:
     @staticmethod
     def to_participation_entity(payload: ParticipationInvitationInput):
         data = payload.model_dump()
+        # Assurer que le champ 'role' n'est jamais nul avant de créer l'entité
+        if data.get("role") is None:
+            data["role"] = "participant"
         return Participation(**data)

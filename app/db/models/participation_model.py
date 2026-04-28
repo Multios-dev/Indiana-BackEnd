@@ -14,5 +14,5 @@ class Participation(Base):
     price = Column(Float, nullable=True)
 
     # Relationships
-    user = relationship("User", backref="participations")
-    event = relationship("Event", backref="participations")
+    user = relationship("User", back_populates="participations")
+    event = relationship("Event", back_populates="participations")

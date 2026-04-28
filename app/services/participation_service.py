@@ -40,7 +40,8 @@ class ParticipationService:
                 raise AlreadyInvitedError()
 
             participation = ParticipationMapper.to_participation_entity(payload)
-            return await self.participation_repo.invite_to_event(participation)
+            await self.participation_repo.invite_to_event(participation)
+            return {"success": True}
         except (EventNotFoundError, UserNotFoundError, AlreadyInvitedError):
             raise
         except Exception as e:
