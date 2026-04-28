@@ -25,25 +25,49 @@ class EmailService:
         self.user_repo = user_repo
         self.event_repo = event_repo
 
-    async def send_registration_email(self, to:str, last_name:str, first_name:str, email:str):
+    async def send_registration_email(self, to: str, last_name: str, first_name: str):
         payload = {
+            "M_NomProduit": "",
+            "M_DateVersion": "",
+            "M_Version_Installee": "",
+            "M_Corps_Message": "",
+            "M_Variable_Libre": "",
             "M_ContexteID": 1,
-            "M_TemplateID": 7966388,
+            "M_TemplateId": 7966388,
             "M_AdresseMailExpediteur": "support@multios.be",
             "M_LOGIN": "Indiana",
-            "M_Programmation": 00000000000000000,
+            "M_Programmation": "00000000000000000",
+            "M_CleReconnaissanceGroupe": "",
+            "M_CleReconnaissanceEnvoiListeDiffusion": "",
+            "M_Contexte_NomFichier": "",
+            "M_Contexte_NomCle": "",
+            "M_Contexte_IDFichier": "",
             "M_TAB_Liste": [
                 {
+                    "M_NomSociete": "",
+                    "M_Civilite": "",
                     "M_NomContact": last_name,
                     "M_PrenomContact": first_name,
-                    "M_AdresseMail": to
+                    "M_AdresseMail": to,
+                    "M_Corps_Message_Personnalise": "",
+                    "M_CC": "",
+                    "M_CleReconnaissanceListeDiffusion": "",
+                    "M_NomFichierLigne": "",
+                    "M_NomCleFichierLigne": "",
+                    "M_ValeurCleLigne": ""
                 }
-            ]
+            ],
+            "M_TAB_Liste_Textes": [],
+            "M_TAB_Liste_Fichiers": []
         }
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{settings.MAILJET_BASE_URL}/api/ext/mailjet/sendemails",
-                headers={"X-API-Key": settings.MAILJET_API_KEY},
+                headers={
+                    "X-API-Key": settings.MAILJET_API_KEY,
+                    "Content-Type": "application/json"
+                },
                 json=payload
             )
             return response.json()
