@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def create_user(
         payload: UserCreateInput,
         background_tasks: BackgroundTasks,
-        service: UserService = Depends(get_user_service),
+        service: UserService = Depends(get_user_service)
 ):
     return await service.create_user(payload, background_tasks)
 

@@ -1,6 +1,4 @@
-import aiosmtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import httpx
 from app.core.config import settings
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
@@ -27,50 +25,51 @@ class EmailService:
         self.user_repo = user_repo
         self.event_repo = event_repo
 
-    @staticmethod
-    async def _send_email(to: str, subject: str, html: str) -> None:
-        message = MIMEMultipart("alternative")
-        message["From"] = settings.MAIL_FROM
-        message["To"] = to
-        message["Subject"] = subject
-        message.attach(MIMEText(html, "html"))
+    async def send_registration_email(self, to: str, last_name: str, first_name: str):
+        payload = {
+            "M_NomProduit": "",
+            "M_DateVersion": "",
+            "M_Version_Installee": "",
+            "M_Corps_Message": "",
+            "M_Variable_Libre": "",
+            "M_ContexteID": 1,
+            "M_TemplateId": 7966388,
+            "M_AdresseMailExpediteur": "support@multios.be",
+            "M_LOGIN": "Indiana",
+            "M_Programmation": "00000000000000000",
+            "M_CleReconnaissanceGroupe": "",
+            "M_CleReconnaissanceEnvoiListeDiffusion": "",
+            "M_Contexte_NomFichier": "",
+            "M_Contexte_NomCle": "",
+            "M_Contexte_IDFichier": "",
+            "M_TAB_Liste": [
+                {
+                    "M_NomSociete": "",
+                    "M_Civilite": "",
+                    "M_NomContact": last_name,
+                    "M_PrenomContact": first_name,
+                    "M_AdresseMail": to,
+                    "M_Corps_Message_Personnalise": "",
+                    "M_CC": "",
+                    "M_CleReconnaissanceListeDiffusion": "",
+                    "M_NomFichierLigne": "",
+                    "M_NomCleFichierLigne": "",
+                    "M_ValeurCleLigne": ""
+                }
+            ],
+            "M_TAB_Liste_Textes": [],
+            "M_TAB_Liste_Fichiers": []
+        }
 
-        await aiosmtplib.send(
-            message,
-            hostname="smtp.gmail.com",
-            port=587,
-            username=settings.MAIL_FROM,
-            password=settings.GMAIL_APP_PASSWORD,
-            start_tls=True,
-        )
-
-    @staticmethod
-    async def send_registration_email(to: str, first_name: str) -> None:
-        try:
-            html = templates.get_template("registration_template.html").render(first_name=first_name)
-            await EmailService._send_email(to, "Bienvenue sur Indiana !", html)
-        except Exception as e:
-            print(e)
-            raise
-
-    async def send_invitation_event_email(self, payload: InvitationEmailInput) -> None:
-        try:
-            event = await self.event_repo.get_event_by_id(payload.event_id)
-            invited = await self.user_repo.get_user_by_id(payload.invited_id)
-            inviter = await self.user_repo.get_user_by_id(payload.inviter_id)
-
-            html = templates.get_template("invite_template.html").render(
-                first_name=invited.first_names[0],
-                inviter_name=inviter.first_names[0],
-                event_name=event.name,
-                event_date=event.start_date.strftime("%d/%m/%Y à %Hh%M"),
-                event_location=event.address.thoroughfare if event.address else "Lieu non défini",
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{settings.MAILJET_BASE_URL}/api/ext/mailjet/sendemails",
+                headers={
+                    "X-API-Key": settings.MAILJET_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                json=payload
             )
-            await EmailService._send_email(
-                to=invited.contact.email,
-                subject="Tu as été invité(e) à un événement !",
-                html=html
-            )
-        except Exception as e:
-            print(e)
-            raise
+            return response.json()
+
+    # TODO : envoyer un mail lorsqu'on invite un utilisateur
