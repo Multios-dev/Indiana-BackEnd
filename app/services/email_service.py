@@ -71,3 +71,5 @@ class EmailService:
                 json=payload
             )
             return response.json()
+
+    # TODO : envoyer un mail lorsqu'on invite un utilisateur
