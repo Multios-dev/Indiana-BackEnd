@@ -2,17 +2,20 @@
 from fastapi.openapi.utils import get_openapi
 from starlette.middleware.cors import CORSMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from app.db.init_db import init_db
+from app.db.session import engine
+from contextlib import asynccontextmanager
+
+from app.middlewares.auth_middleware import auth_middleware
+from app.middlewares.exception_middleware import exception_middleware
+
 from app.api.routes.users import router as user_router
 from app.api.routes.organizations import router as organization_router
 from app.api.routes.memberships import router as memberships_router
 from app.api.routes.events import router as events_router
 from app.api.routes.addresses import router as address_router
 from app.api.routes.auth import router as auth_router
-from app.db.init_db import init_db
-from app.db.session import engine
-from contextlib import asynccontextmanager
-from app.middlewares.auth_middleware import auth_middleware
-from app.middlewares.exception_middleware import exception_middleware
+from app.api.routes.participations import router as participations_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -66,3 +69,4 @@ app.include_router(organization_router)
 app.include_router(memberships_router)
 app.include_router(events_router)
 app.include_router(address_router)
+app.include_router(participations_router)
