@@ -138,32 +138,3 @@ class EventService:
 
     async def count_events(self) -> int:
         return await self.repo.count_events()
-
-    async def invite_to_event(
-            self,
-            payload:InvitationEmailInput,
-            background_tasks: BackgroundTasks
-    ):
-        try:
-            event = await self.repo.get_event_by_id(payload.event_id)
-            if not event:
-                raise EventNotFoundError()
-            invited = await self.user_repo.get_user_by_id(payload.invited_id)
-            if not invited:
-                raise UserInvitedNotFoundError()
-            inviter = await self.user_repo.get_user_by_id(payload.inviter_id)
-            if not inviter:
-                raise UserInviterNotFoundError()
-
-            background_tasks.add_task(
-                self.email_service.send_invitation_event_email,
-                payload
-            )
-
-            return {"message": "Invitation sent"}
-
-        except (EventNotFoundError, UserInvitedNotFoundError, UserInviterNotFoundError):
-            raise
-        except Exception as e:
-            traceback.print_exc()
-            raise DatabaseError() from e
