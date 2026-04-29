@@ -14,10 +14,17 @@ class ParticipationRepository(ParticipationInterface):
         await self.db.refresh(participation)
         return True
 
-    async def get_participation(self, user_id:UUID, event_id:UUID) -> Participation:
+    async def get_participation_by_user_and_event(self, user_id:UUID, event_id:UUID) -> Participation:
         stmt = (select(Participation)
                 .where(Participation.user_id == user_id, Participation.event_id == event_id))
 
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_participation_by_id(self, participation_id:UUID)->Participation:
+        stmt = (select(Participation)
+                .where(Participation.id == participation_id)
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 

@@ -17,29 +17,6 @@ class AppException(Exception):
         super().__init__(self.detail)
 
 # ==============================
-# 404 - NOT FOUND
-# ==============================
-class NotFoundError(AppException):
-    status_code = 404
-    detail = "Resource not found"
-class UserNotFoundError(NotFoundError):
-    detail = "User not found"
-class OrganizationNotFoundError(NotFoundError):
-    detail = "Organization not found"
-class MembershipNotFoundError(NotFoundError):
-    detail = "Membership not found"
-class ContactNotFoundError(NotFoundError):
-    detail = "Contact not found"
-class EventNotFoundError(NotFoundError):
-    detail = "Event not found"
-class AddressNotFoundError(NotFoundError):
-    detail = "Address not found"
-class UserInvitedNotFoundError(NotFoundError):
-    detail = "User invited not found"
-class UserInviterNotFoundError(NotFoundError):
-    detail = "User inviter not found"
-
-# ==============================
 # 400 - BAD REQUEST
 # ==============================
 class BadRequestError(AppException):
@@ -74,6 +51,31 @@ class PasswordError(ForbiddenError):
     detail = "Invalid password"
 class NotAllowedGuardianError(ForbiddenError):
     detail = "Not a legal guardian"
+
+# ==============================
+# 404 - NOT FOUND
+# ==============================
+class NotFoundError(AppException):
+    status_code = 404
+    detail = "Resource not found"
+class UserNotFoundError(NotFoundError):
+    detail = "User not found"
+class OrganizationNotFoundError(NotFoundError):
+    detail = "Organization not found"
+class MembershipNotFoundError(NotFoundError):
+    detail = "Membership not found"
+class ContactNotFoundError(NotFoundError):
+    detail = "Contact not found"
+class EventNotFoundError(NotFoundError):
+    detail = "Event not found"
+class AddressNotFoundError(NotFoundError):
+    detail = "Address not found"
+class UserInvitedNotFoundError(NotFoundError):
+    detail = "User invited not found"
+class UserInviterNotFoundError(NotFoundError):
+    detail = "User inviter not found"
+class ParticipationNotFoundError(NotFoundError):
+    detail = "Participation not found"
 
 # ==============================
 # 409 - CONFLICT
