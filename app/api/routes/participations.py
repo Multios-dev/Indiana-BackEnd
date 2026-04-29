@@ -22,3 +22,10 @@ async def update_participation(
         service: ParticipationService = Depends(get_participation_service)
 ):
     return await service.update_participation(participation_id, payload)
+
+@router.delete("/{participation_id}", response_model=dict, summary="Supprimer une participation")
+async def delete_participation(
+        participation_id: UUID,
+        service: ParticipationService = Depends(get_participation_service)
+):
+    return await service.delete_participation(participation_id)

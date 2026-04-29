@@ -72,3 +72,10 @@ class ParticipationService:
         if not participations:
             raise ParticipationNotFoundError()
         return participations
+
+    async def delete_participation(self, participation_id: UUID):
+        deleted_participation = await self.participation_repo.delete_participation(participation_id)
+        if not deleted_participation:
+            raise ParticipationNotFoundError()
+        await self.participation_repo.delete_participation(participation_id)
+        return {"message": "Participation deleted successfully"}
