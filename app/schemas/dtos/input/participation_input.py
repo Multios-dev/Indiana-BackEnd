@@ -6,7 +6,7 @@ from decimal import Decimal
 class ParticipationInvitationInput(BaseModel):
     user_id:UUID
     event_id:UUID
-    role:str | None = None
+    role:str | None = "invited"
     price:Decimal
 
     @field_validator("price")

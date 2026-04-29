@@ -7,5 +7,5 @@ class ParticipationMapper:
         data = payload.model_dump()
         # Assurer que le champ 'role' n'est jamais nul avant de créer l'entité
         if data.get("role") is None:
-            data["role"] = "participant"
+            data["role"] = "invited"
         return Participation(**data)
