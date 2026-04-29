@@ -7,7 +7,7 @@ class ParticipationInvitationInput(BaseModel):
     user_id:UUID
     event_id:UUID
     role:str | None = "invited"
-    price:Decimal
+    price:Decimal | None = None
 
     @field_validator("price")
     def validate_price(cls, v):
