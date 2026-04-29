@@ -29,12 +29,12 @@ class ParticipationRepository(ParticipationInterface):
         return result.scalar_one_or_none()
 
     async def update_participation(self, participation_id: UUID, data: dict) -> Participation | None:
-        async with self.db.begin():
-            stmt = (
-                update(Participation)
-                .where(Participation.id == participation_id)
-                .values(**data)
-                .returning(Participation)
-            )
-            result = await self.db.execute(stmt)
-            return result.scalar_one_or_none()
+        stmt = (
+            update(Participation)
+            .where(Participation.id == participation_id)
+            .values(**data)
+            .returning(Participation)
+        )
+        result = await self.db.execute(stmt)
+        await self.db.commit()
+        return result.scalar_one_or_none()
