@@ -66,3 +66,9 @@ class ParticipationService:
         except Exception as e:
             traceback.print_exc()
             raise DatabaseError() from e
+
+    async def get_all_participations(self, filters:dict | None = None):
+        participations = await self.participation_repo.get_all_participations(filters)
+        if not participations:
+            raise ParticipationNotFoundError()
+        return participations

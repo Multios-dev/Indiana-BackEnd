@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from typing import List
 from uuid import UUID
 
 from app.db.models.participation_model import Participation
@@ -12,3 +13,5 @@ class ParticipationInterface(ABC):
     async def invite_to_event(self, participation:Participation)->bool:...
     @abstractmethod
     async def update_participation(self, participation_id:UUID, data:dict)->Participation:...
+    @abstractmethod
+    async def get_all_participations(self, filters:dict | None = None) -> List[Participation]:...
