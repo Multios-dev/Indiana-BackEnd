@@ -60,3 +60,17 @@ class ParticipationRepository(ParticipationInterface):
 
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def delete_participation(self, participation_id:UUID):
+        participation_found = await self.get_participation_by_id(participation_id)
+        if not participation_found:
+            return None
+
+        await self.db.delete(participation_found)
+        try:
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
+            raise
+
+        return True

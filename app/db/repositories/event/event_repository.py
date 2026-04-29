@@ -85,25 +85,26 @@ class EventRepository(EventInterface):
             await self.db.rollback()
             raise
 
-    async def delete_event(self, event_id:UUID):
+    async def delete_event(self, event_id: UUID):
+        stmt = (
+            select(Event)
+            .where(Event.id == event_id)
+            .options(selectinload(Event.audiences), selectinload(Event.address))
+        )
+        result = await self.db.execute(stmt)
+        event_found = result.scalar_one_or_none()
+
+        if not event_found:
+            return None
+
+        await self.db.delete(event_found)
         try:
-            stmt = (select(Event)
-                    .where(Event.id == event_id)
-                    .options(selectinload(Event.audiences), selectinload(Event.address))
-                    )
-            result = await self.db.execute(stmt)
-            event_found = result.scalar_one_or_none()
-
-            if not event_found:
-                return None
-
-            await self.db.delete(event_found)
             await self.db.commit()
-            return True
-
         except Exception:
             await self.db.rollback()
             raise
+
+        return True
 
     async def count_events(self) -> int:
         stmt = select(func.count()).select_from(Event)
