@@ -43,7 +43,7 @@ class OrganizationService:
         return organization
 
     async def create_organization(self, payload: CreateOrganizationInput) -> Organization:
-        parent_id = None if payload.parent_id == 0 else payload.parent_id
+        parent_id = payload.parent_id
         if parent_id is not None:
             parent = await self.repo.get_organization_by_id(parent_id)
             if not parent:

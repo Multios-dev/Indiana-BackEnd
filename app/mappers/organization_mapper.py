@@ -7,8 +7,6 @@ class OrganizationMapper:
     @staticmethod
     def to_organization_entity(payload: CreateOrganizationInput) -> Organization:
         data = payload.model_dump(exclude_none=True, exclude={"contact", "address"})
-        if data.get("parent_id") == 0:
-            data["parent_id"] = None
         return Organization(**data)
 
     @staticmethod
