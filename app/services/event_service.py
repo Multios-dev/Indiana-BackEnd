@@ -101,7 +101,7 @@ class EventService:
             parent = await self.repo.get_event_by_id(data["parent_id"])
             if not parent:
                 raise InvalidParentEventError()
-            if data["parent_id"] == parent.id:
+            if data["parent_id"] == event_id:
                 raise SelfParentEventError()
 
         audience_data = data.pop("audiences", None)
