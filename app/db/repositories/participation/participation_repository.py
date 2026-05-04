@@ -52,7 +52,7 @@ class ParticipationRepository(ParticipationInterface):
             }
 
             for key, value in filters.items():
-                if key not in allowed_filters and hasattr(Participation, key):
+                if key in allowed_filters and hasattr(Participation, key):
                     conditions.append(getattr(Participation, key) == value)
 
         if conditions:
