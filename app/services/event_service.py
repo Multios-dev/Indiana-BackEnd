@@ -94,7 +94,7 @@ class EventService:
         if not data:
             raise EmptyUpdatePayloadError()
 
-        if "parent_id" in data and data["parent_id"] == 0:
+        if "parent_id" in data:
             data["parent_id"] = None
 
         if "parent_id" in data and data["parent_id"] is not None:
