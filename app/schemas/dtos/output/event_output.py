@@ -19,6 +19,7 @@ class EventOutput(BaseModel):
     latitude:float | None = None
     longitude:float | None = None
     parent_id:UUID4 | None = None
+    max_participants:int
     audiences:List[AudienceOutput]=[]
     address:AddressOutput | None = None
 
