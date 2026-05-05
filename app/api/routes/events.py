@@ -51,6 +51,13 @@ async def get_event_by_id(
 ):
     return await service.get_event_by_id(event_id)
 
+@router.get("/{event_id}/participants/count")
+async def get_participant_count(
+    event_id: UUID,
+    service: EventService = Depends(get_event_service),
+):
+    return await service.get_participation_count(event_id)
+
 @router.put("/{event_id}", response_model=EventOutput, summary="Modifier un événement")
 async def update_event(
         event_id:UUID,
