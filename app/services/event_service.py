@@ -138,3 +138,6 @@ class EventService:
 
     async def count_events(self) -> int:
         return await self.repo.count_events()
+
+    async def get_participation_count(self, event_id: UUID) -> int:
+        return await self.repo.get_participant_count(event_id)

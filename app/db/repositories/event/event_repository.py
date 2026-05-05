@@ -1,4 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models.participation_model import Participation
 from app.db.repositories.event.event_interface import EventInterface
 from app.db.models.event_model import Event, Audience
 from sqlalchemy.orm import selectinload
@@ -110,6 +112,13 @@ class EventRepository(EventInterface):
         stmt = select(func.count()).select_from(Event)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_participant_count(self, event_id: UUID) -> int:
+        stmt = select(func.count(Participation.id)).where(
+            Participation.event_id == event_id
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     async def get_audiences_by_ids(self, audience_ids: list[int]):
         stmt = select(Audience).where(Audience.id.in_(audience_ids))
