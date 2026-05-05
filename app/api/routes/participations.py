@@ -1,11 +1,18 @@
 from uuid import UUID
 from typing import List
 from fastapi import APIRouter, Depends, Request
-from app.schemas.dtos.input.participation_input import ParticipationUpdateInput
+from app.schemas.dtos.input.participation_input import ParticipationUpdateInput, CreateParticipationInput
 from app.schemas.dtos.output.participation_output import ParticipationOutput
 from app.services.participation_service import get_participation_service, ParticipationService
 
 router = APIRouter(prefix="/participations", tags=["participations"])
+
+@router.post("/", response_model=ParticipationOutput, summary="S'inscrire à un événement")
+async def create_participation(
+        payload:CreateParticipationInput,
+        service: ParticipationService = Depends(get_participation_service)
+):
+    return await service.create_participation(payload)
 
 @router.get("/", response_model=List[ParticipationOutput], summary="Récupérer les participations (avec ou sans filtres)")
 async def get_all_participations(
