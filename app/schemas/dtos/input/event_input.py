@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Self
-from pydantic import BaseModel, ConfigDict, model_validator, field_validator, UUID4
+from pydantic import BaseModel, ConfigDict, model_validator, field_validator, UUID4, Field
 from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
 
 class AudienceInput(BaseModel):
@@ -17,6 +17,7 @@ class CreateEventInput(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     parent_id: UUID4 | None = None
+    max_participants:int = Field(default=50, gt=0, le=100)
     audiences: List[AudienceInput] | None = None
     address:AddressCreateInput | None = None
 
@@ -41,22 +42,6 @@ class CreateEventInput(BaseModel):
             raise ValueError("GPS and address fields cannot be both at the same time")
         return self
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        json_schema_extra={
-            "example": {
-                "name": "Camp d'été",
-                "description": "Camp annuel",
-                "event_type": "camp",
-                "start_date": "2026-07-01 09:00",
-                "end_date": "2026-07-07 18:00",
-                "latitude": 50.8503,
-                "longitude": 4.3517,
-                "audiences": [{"id": 1}]
-            }
-        }
-    )
-
 class UpdateEventInput(BaseModel):
     name: str | None = None
     description: str | None = None
@@ -66,6 +51,7 @@ class UpdateEventInput(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     parent_id: UUID4 | None = None
+    max_participants: int | None = Field(default=None, gt=0, le=100)
     audiences: List[AudienceInput] | None = None
     address:AddressUpdateInput | None = None
 
