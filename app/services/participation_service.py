@@ -8,7 +8,8 @@ from fastapi import Depends
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
 from app.mappers.participation_mapper import ParticipationMapper
-from app.schemas.dtos.input.participation_input import ParticipationInvitationInput, ParticipationUpdateInput
+from app.schemas.dtos.input.participation_input import ParticipationInvitationInput, ParticipationUpdateInput, \
+    CreateParticipationInput
 from uuid import UUID
 
 def get_participation_service(db:AsyncSession = Depends(get_db)):
@@ -78,3 +79,12 @@ class ParticipationService:
         if not deleted:
             raise ParticipationNotFoundError()
         return {"message": "Participation deleted successfully"}
+
+    async def create_participation(self, payload:CreateParticipationInput):
+        participation = ParticipationMapper.to_participation_entity(payload)
+        try:
+            await self.participation_repo.create_participation(participation)
+            return participation
+        except Exception as e:
+            traceback.print_exc()
+            raise DatabaseError() from e

@@ -74,3 +74,9 @@ class ParticipationRepository(ParticipationInterface):
             raise
 
         return True
+
+    async def create_participation(self, participation:Participation) ->Participation:
+        self.db.add(participation)
+        await self.db.commit()
+        await self.db.refresh(participation)
+        return participation
