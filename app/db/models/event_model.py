@@ -19,6 +19,8 @@ class Event(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
+    max_participants = Column(Integer, nullable=False)
+
     # Reference to the parent event
     parent_id = Column(
         UUID(as_uuid=True),
