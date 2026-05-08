@@ -1,0 +1,21 @@
+{{- if .Values.virtualService.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.nameOverride | default .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.nameOverride | default .Release.Name }}
+spec:
+  hosts:
+    - {{ .Values.virtualService.host | quote }}
+  gateways:
+    - {{ .Values.virtualService.gateway | quote }}
+  http:
+    - route:
+        - destination:
+            # On pointe dynamiquement vers le Service Kubernetes qu'on a créé tout à l'heure
+            host: {{ .Values.nameOverride | default .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.servicePort }}
+{{- end }}

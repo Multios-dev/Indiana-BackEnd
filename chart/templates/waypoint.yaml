@@ -1,0 +1,20 @@
+{{- if .Values.waypoint.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  # On utilise le nom défini dans les values
+  name: {{ .Values.waypoint.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+   
+    # Ce label indique à Istio que ce waypoint gère le trafic pour tout le namespace
+    istio.io/waypoint-for: {{ .Values.waypoint.for }}
+spec:
+  # C'est cette classe spécifique qui dit à Istio de déployer un proxy Envoy de type Waypoint
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      # Le port standard Istio pour le trafic interne HBONE
+      port: 15008
+      protocol: HBONE
+{{- end }}

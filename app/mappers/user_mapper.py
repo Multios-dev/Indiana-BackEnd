@@ -1,5 +1,6 @@
 from app.db.models.address_model import Address
 from app.db.models.user_model import User
+from app.db.models.contact_model import Contact
 from app.schemas.dtos.input.user_input import UserCreateInput
 
 class UserMapper:
@@ -16,7 +17,6 @@ class UserMapper:
         if not payload.contact:
             return None
         data = payload.contact.model_dump(exclude_none=True)
-        from app.db.models.contact_model import Contact
         return Contact(user_id=user_id, **data)
 
     @staticmethod
