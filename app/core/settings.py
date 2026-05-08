@@ -4,13 +4,9 @@ import base64
 import json
 from functools import lru_cache
 from typing import Optional
-
-import aiohttp
 import requests
 from pydantic import Field
 from pydantic_settings import BaseSettings
-
-global_aiohttp_session: aiohttp.ClientSession
 
 # ---------------------------------------------------------------------------
 #                               SETTINGS
@@ -32,59 +28,27 @@ class Settings(BaseSettings):
     #                CHARGEMENT BLOQUANT DES SECRETS
     # -----------------------------------------------------------
     def hydrate(self, session: Optional[requests.Session] = None) -> None:
-        """
-        Remplit tous les champs manquants. Plante immédiatement si l’appel
-        Scaleway échoue.
-        """
         created = session is None
         if created:
             session = requests.Session()
 
         try:
             fields_to_load = (
-                "redis_url",
-                "postgres_dsn_async",
-                "postgres_dsn_sync",
-                "gemini_api_key",
-                "gemini_api_url"  ,
-                "llama_api_key",
-                "llama_api_url",
-                "x_api_key",
-                "x_api_key_chat",
-                "scrap_url",
-                "api_key_scrap",
-                "bnb_ref_url",
-                "bnb_accounting_url",
-                "api_key_bnb",
-                "celery_broker_url",
-                "celery_result_backend",
-                "fernet_key",
-                "netlify_access_token",
-                "netlify_site_base_url",
-                "email_api_key",
-                "email_api_url",
-                "voiceteris_api_url",
-                "voiceteris_api_key",
-                "qdrant_api_url",
-                "qdrant_api_key",
-                "mc_auth_url",
-                "mc_auth_api_key"
+                "database_url",
+                "keycloak_url",
+                "mailjet_api_key",
+                "mailjet_base_url"
             )
-            # une seule requête : le bundle contient tout
             self._fetch_secret_bundle(session, fields_to_load)
         finally:
             if created:
                 session.close()
 
-    # -----------------------------------------------------------
     def _fetch_secret_bundle(
         self,
         session: requests.Session,
         fields: tuple[str, ...],
     ) -> None:
-        """
-        Lit le secret bundle JSON et hydrate les attributs demandés.
-        """
         url = (
             "https://api.scaleway.com/secret-manager/v1beta1/regions/"
             f"{self.scw_region}/secrets/{self.scw_default_project_id}"
