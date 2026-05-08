@@ -1,0 +1,25 @@
+{{- if .Values.serviceEntry.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  # Si un nom est défini dans les values on l'utilise, sinon on crée un nom basé sur la release
+  name: {{ .Values.serviceEntry.name | default (printf "%s-external-entry" .Release.Name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.nameOverride | default .Release.Name }}
+spec:
+  location: {{ .Values.serviceEntry.location }}
+  resolution: {{ .Values.serviceEntry.resolution }}
+  
+  # Injection de la liste des domaines externes autorisés
+  {{- with .Values.serviceEntry.hosts }}
+  hosts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  
+  # Injection de la liste des ports ouverts vers l'extérieur
+  {{- with .Values.serviceEntry.ports }}
+  ports:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
