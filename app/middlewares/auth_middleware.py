@@ -12,7 +12,7 @@ async def auth_middleware(request: Request, call_next):
         raise HTTPException(status_code=401, detail="Missing Authorization")
 
     # Dev mode (bypass token validation if KEYCLOAK_URL isn't set)
-    if not settings.KEYCLOAK_URL:
+    if not settings.keycloak_url:
         return await call_next(request)
 
     # TODO: validate token against Keycloak when configured

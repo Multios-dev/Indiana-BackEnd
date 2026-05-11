@@ -6,13 +6,16 @@ from functools import lru_cache
 from typing import Optional
 import requests
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ---------------------------------------------------------------------------
 #                               SETTINGS
 # ---------------------------------------------------------------------------
-
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    app_env:str = Field("test", alias="APP_ENV")
+
     # -------- Scaleway ----
     scw_region: str = Field("fr-par", alias="SCW_REGION")
     scw_secret_key: str = Field(..., alias="SCW_SECRET_KEY")
