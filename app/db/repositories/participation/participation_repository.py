@@ -6,6 +6,12 @@ from app.db.models.participation_model import Participation
 from app.db.repositories.participation.participation_interface import ParticipationInterface
 
 class ParticipationRepository(ParticipationInterface):
+    ALLOWED_FILTERS = { "event_id", "user_id" }
+    TYPE_MAP = {
+        "event_id": UUID,
+        "user_id": UUID
+    }
+
     def __init__(self, db:AsyncSession):
         self.db = db
 
@@ -46,14 +52,14 @@ class ParticipationRepository(ParticipationInterface):
         conditions = []
 
         if filters:
-            allowed_filters = {
-                "event_id",
-                "user_id"
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Participation, key):
-                    conditions.append(getattr(Participation, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Participation, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Participation, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

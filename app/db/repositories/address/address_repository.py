@@ -7,6 +7,14 @@ from app.db.repositories.address.address_interface import AddressInterface
 from uuid import UUID
 
 class AddressRepository(AddressInterface):
+    ALLOWED_FILTERS = {"thoroughfare", "box_number", "post_name", "post_code", "country"}
+    TYPE_MAP = {
+        "thoroughfare": str,
+        "box_number": str,
+        "post_name": str,
+        "post_code": str,
+        "country": str
+    }
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -50,10 +58,14 @@ class AddressRepository(AddressInterface):
         conditions = []
 
         if filters:
-            allowed_filters = {"thoroughfare", "box_number", "post_name", "post_code", "country"}
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Address, key):
-                    conditions.append(getattr(Address, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Address, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Address, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

@@ -4,8 +4,17 @@ from app.db.repositories.membership.membership_interface import MembershipInterf
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from uuid import UUID
+from datetime import datetime
 
 class MembershipRepository(MembershipInterface):
+    ALLOWED_FILTERS = { "user_id", "organization_id", "role", "start_date", "end_date" }
+    TYPE_MAP = {
+        "user_id": UUID,
+        "organization_id": UUID,
+        "role": str,
+        "start_date": datetime,
+        "end_date": datetime
+    }
     def __init__(self, db: AsyncSession):
         # Keep a reference to the database session
         # This session will be used to execute queries
@@ -16,17 +25,14 @@ class MembershipRepository(MembershipInterface):
         conditions = []
 
         if filters:
-            allowed_filters = {
-                "user_id",
-                "organization_id",
-                "role",
-                "start_date",
-                "end_date"
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Membership, key):
-                    conditions.append(getattr(Membership, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Membership, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Membership, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

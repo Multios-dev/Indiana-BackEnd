@@ -6,6 +6,18 @@ from sqlalchemy.orm import selectinload
 from uuid import UUID
 
 class OrganizationRepository(OrganizationInterface):
+    ALLOWED_FILTERS = { "name", "acronym", "parent_id", "purpose", "org_type", "sgp_type", "billable", "is_legal_entity" }
+    TYPE_MAP = {
+        "name":str,
+        "acronym":str,
+        "parent_id": UUID,
+        "purpose":str,
+        "org_type": str,
+        "sgp_type": str,
+        "billable":bool,
+        "is_legal_entity":bool
+    }
+
     def __init__(self, db:AsyncSession):
         # Keep a reference to the db session
         # This session will be used to execute queries
@@ -21,20 +33,14 @@ class OrganizationRepository(OrganizationInterface):
         conditions=[]
 
         if filters:
-            allowed_filters = {
-                "name",
-                "acronym",
-                "parent_id",
-                "purpose",
-                "org_type",
-                "sgp_type",
-                "billable",
-                "is_legal_entity",
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Organization, key):
-                    conditions.append(getattr(Organization, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Organization, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Organization, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))
