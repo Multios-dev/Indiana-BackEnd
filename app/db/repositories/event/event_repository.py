@@ -1,13 +1,21 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.models.participation_model import Participation
 from app.db.repositories.event.event_interface import EventInterface
 from app.db.models.event_model import Event, Audience
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, and_, func
 from uuid import UUID
+from datetime import datetime
 
 class EventRepository(EventInterface):
+    ALLOWED_FILTERS = {"name", "event_type", "start_date", "end_date"}
+    TYPE_MAP = {
+        "name": str,
+        "event_type": str,
+        "start_date": datetime,
+        "end_date": datetime,
+    }
+
     def __init__(self, db:AsyncSession):
         self.db = db
 
@@ -21,16 +29,14 @@ class EventRepository(EventInterface):
         conditions=[]
 
         if filters:
-            allowed_filters = {
-                "name",
-                "event_type",
-                "start_date",
-                "end_date"
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Event, key):
-                    conditions.append(getattr(Event, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Event, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Event, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

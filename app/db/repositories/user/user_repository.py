@@ -1,11 +1,25 @@
+from psycopg2.extensions import JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 from app.db.models.user_model import User
 from app.db.repositories.user.user_interface import UserInterface
 from uuid import UUID
+from datetime import date
 
 class UserRepository(UserInterface):
+    ALLOWED_FILTERS = { "first_names", "last_name", "birth_date", "gender", "nationality", "totem", "quali", "is_legal_guardian" }
+    TYPE_MAP = {
+        "first_names": JSON,
+        "last_name": str,
+        "birth_date": date,
+        "gender": str,
+        "nationality": JSON,
+        "totem": str,
+        "quali": str,
+        "is_legal_guardian": bool,
+    }
+
     def __init__(self, db:AsyncSession):
         # Keep a reference to the db session
         # This session will be used to execute queries
@@ -27,46 +41,39 @@ class UserRepository(UserInterface):
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
-    async def get_users(self, skip:int, limit:int, filters: dict | None = None) -> list[User]:
+    async def get_users(self, skip: int, limit: int, filters: dict | None = None) -> list[User]:
         stmt = select(User).options(
-    selectinload(User.contact),
+            selectinload(User.contact),
             selectinload(User.home_address),
             selectinload(User.residential_address)
         )
 
-        # Initialize empty list
+        # Store all SQL filter conditions
         conditions = []
 
-        # List of allowed filter fields
-        # This prevents filtering on arbitrary columns or on sensitives fiels
+        # Only allow filtering on safe and expected fields
         if filters:
-            allowed_filters = {
-                "first_names",
-                "last_name",
-                "birth_date",
-                "gender",
-                "nationality",
-                "totem",
-                "quali",
-                "is_legal_guardian",
-            }
 
-            # Iterate over all filters sent in the request
+            # Iterate through all provided filters
             for key, value in filters.items():
 
-                # Check that the filter is allowed
-                # and that the attribut actually exists in the SQL model
-                if key in allowed_filters and hasattr(User, key):
+                # Ignore unknown or unauthorized fields
+                if key not in self.ALLOWED_FILTERS or not hasattr(User, key):
+                    continue
+                try:
+                    # Cast the value to the expected Python type
+                    casted = self.TYPE_MAP[key](value)
+                    # Add the SQL condition
+                    conditions.append(getattr(User, key) == casted)
+                except (ValueError, TypeError):
+                    # Ignore invalid filter values
+                    continue
 
-                    # Dynamically build a SQL condition
-                    # e.g. : Organization.city == "Mons"
-                    conditions.append(getattr(User, key) == value)
-
+        # Apply all conditions using SQL AND
         if conditions:
-            # Apply conditions to the SQL query
-            # and_ combines multiple filters
             stmt = stmt.where(and_(*conditions))
 
+        # Apply pagination
         stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
 
