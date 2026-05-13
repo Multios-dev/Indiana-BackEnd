@@ -1,6 +1,6 @@
 import traceback
 from app.core.exceptions import EventNotFoundError, UserNotFoundError, AlreadyInvitedError, DatabaseError, \
-    ParticipationNotFoundError, EmptyUpdatePayloadError
+    ParticipationNotFoundError, EmptyUpdatePayloadError, EventFullError
 from app.db.repositories.event.event_repository import EventRepository
 from app.db.repositories.participation.participation_repository import ParticipationRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,10 +41,14 @@ class ParticipationService:
             if existing:
                 raise AlreadyInvitedError()
 
+            count = await self.event_repo.get_participant_count(payload.event_id)
+            if count >= event.max_participants:
+                raise EventFullError()
+
             participation = ParticipationMapper.to_participation_entity(payload)
             await self.participation_repo.invite_to_event(participation)
             return {"success": True}
-        except (EventNotFoundError, UserNotFoundError, AlreadyInvitedError):
+        except (EventNotFoundError, UserNotFoundError, AlreadyInvitedError, EventFullError):
             raise
         except Exception as e:
             traceback.print_exc()
@@ -81,6 +85,13 @@ class ParticipationService:
         return {"message": "Participation deleted successfully"}
 
     async def create_participation(self, payload:CreateParticipationInput):
+        event = await self.event_repo.get_event_by_id(payload.event_id)
+        if not event:
+            raise EventNotFoundError()
+        count = await self.event_repo.get_participant_count(payload.event_id)
+        if count >= event.max_participants:
+            raise EventFullError()
+
         participation = ParticipationMapper.to_participation_entity(payload)
         try:
             await self.participation_repo.create_participation(participation)

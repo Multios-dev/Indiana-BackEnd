@@ -89,6 +89,9 @@ class RelationshipAlreadyExistsError(ConflictError):
     detail = "This guardian is already assigned to this minor"
 class AlreadyInvitedError(ConflictError):
     detail = "User is already invited to this event"
+class EventFullError(ConflictError):
+    detail = "Event has reached its maximum number of participants"
+
 # ==============================
 # 500 - SERVER ERROR
 # ==============================
