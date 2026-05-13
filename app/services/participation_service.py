@@ -96,6 +96,8 @@ class ParticipationService:
         try:
             await self.participation_repo.create_participation(participation)
             return participation
+        except (EventNotFoundError, EventFullError):
+            raise
         except Exception as e:
             traceback.print_exc()
             raise DatabaseError() from e
