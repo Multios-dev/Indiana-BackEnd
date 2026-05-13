@@ -65,7 +65,7 @@ class EmailService:
             response = await client.post(
                 f"{settings.MAILJET_BASE_URL}/api/ext/mailjet/sendemails",
                 headers={
-                    "X-API-Key": settings.MAILJET_API_KEY,
+                    "X-API-Key": settings.mailjet_api_key,
                     "Content-Type": "application/json"
                 },
                 json=payload

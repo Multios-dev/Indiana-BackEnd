@@ -127,36 +127,25 @@ class UserService:
         )
 
         user_entity = UserMapper.to_user_entity(payload)
+        contact = UserMapper.to_contact_entity(payload, user_id=None)  # ← id assigné dans le repo
 
         try:
-            if home_address:
-                created_home = await self.address_repo.create_address(home_address)
-                user_entity.home_address_id = created_home.id
-
-            if residential_address:
-                created_residential = await self.address_repo.create_address(residential_address)
-                user_entity.residential_address_id = created_residential.id
-
-            created_user = await self.repo.create_user(user_entity)
-
-            contact = UserMapper.to_contact_entity(payload, created_user.id)
-
-            if contact:
-                await self.contact_repo.create_contact(contact)
-
-            full_user = await self.repo.get_user_by_id(created_user.id)
-
+            full_user = await self.repo.create_user(  # ← tout délégué au repo
+                person=user_entity,
+                home_address=home_address,
+                residential_address=residential_address,
+                contact=contact,
+            )
         except SQLAlchemyError as e:
             raise DatabaseError() from e
 
         email = payload.contact.email if payload.contact and payload.contact.email else None
-
         if email:
             background_tasks.add_task(
                 self.email_service.send_registration_email,
                 to=email,
-                last_name=created_user.last_name,
-                first_name=created_user.first_names[0],
+                last_name=full_user.last_name,
+                first_name=full_user.first_names[0],
             )
 
         return full_user
