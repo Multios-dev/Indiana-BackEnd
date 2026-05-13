@@ -119,18 +119,16 @@ class UserService:
             if payload.home_address
             else None
         )
-
         residential_address = (
             UserMapper.to_address_entity(payload.residential_address)
             if payload.residential_address
             else None
         )
-
         user_entity = UserMapper.to_user_entity(payload)
-        contact = UserMapper.to_contact_entity(payload, user_id=None)  # ← id assigné dans le repo
+        contact = UserMapper.to_contact_entity(payload, user_id=None)
 
         try:
-            full_user = await self.repo.create_user(  # ← tout délégué au repo
+            full_user = await self.repo.create_user(  # already returns full user with relations
                 person=user_entity,
                 home_address=home_address,
                 residential_address=residential_address,

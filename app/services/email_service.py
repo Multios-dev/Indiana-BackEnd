@@ -63,7 +63,7 @@ class EmailService:
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{settings.MAILJET_BASE_URL}/api/ext/mailjet/sendemails",
+                f"{settings.mailjet_base_url}/api/ext/mailjet/sendemails",
                 headers={
                     "X-API-Key": settings.mailjet_api_key,
                     "Content-Type": "application/json"
