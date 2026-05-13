@@ -1,4 +1,7 @@
 import traceback
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.core.exceptions import EventNotFoundError, UserNotFoundError, AlreadyInvitedError, DatabaseError, \
     ParticipationNotFoundError, EmptyUpdatePayloadError, EventFullError
 from app.db.repositories.event.event_repository import EventRepository
@@ -98,6 +101,5 @@ class ParticipationService:
             return participation
         except (EventNotFoundError, EventFullError):
             raise
-        except Exception as e:
-            traceback.print_exc()
+        except SQLAlchemyError as e:
             raise DatabaseError() from e

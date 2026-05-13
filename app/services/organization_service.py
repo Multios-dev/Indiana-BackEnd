@@ -1,4 +1,7 @@
 import traceback
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
 from app.db.repositories.address.address_repository import AddressRepository
@@ -43,33 +46,35 @@ class OrganizationService:
         return organization
 
     async def create_organization(self, payload: CreateOrganizationInput) -> Organization:
-        parent_id = payload.parent_id
-        if parent_id is not None:
-            parent = await self.repo.get_organization_by_id(parent_id)
+
+        if payload.parent_id is not None:
+            parent = await self.repo.get_organization_by_id(payload.parent_id)
+
             if not parent:
                 raise InvalidParentOrganizationError()
 
-        try:
-            if payload.address:
-                address = OrganizationMapper.to_address_entity(payload.address)
-                created_address = await self.address_repo.create_address(address)
-                address_id = created_address.id
-            else:
-                address_id = None
+        address = None
+        if payload.address:
+            address = OrganizationMapper.to_address_entity(payload.address)
 
-            organization = OrganizationMapper.to_organization_entity(payload)
-            organization.address_id = address_id
+        organization = OrganizationMapper.to_organization_entity(payload)
+
+        try:
+            if address:
+                created_address = await self.address_repo.create_address(address)
+                organization.address_id = created_address.id
+
             created = await self.repo.create_organization(organization)
 
             contact = OrganizationMapper.to_contact_entity(payload, created.id)
+
             if contact:
                 await self.contact_repo.create_contact(contact)
                 created = await self.repo.get_organization_by_id(created.id)
 
             return created
-        except Exception as e:
-            print ("DatabaseError : ", e)
-            traceback.print_exc()
+
+        except SQLAlchemyError as e:
             raise DatabaseError() from e
 
     async def update_organization(self, organization_id: UUID, payload: UpdateOrganizationInput):
