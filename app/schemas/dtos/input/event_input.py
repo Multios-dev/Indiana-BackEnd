@@ -37,7 +37,12 @@ class CreateEventInput(BaseModel):
     @model_validator(mode="after")
     def validate_location(self) -> Self:
         has_address = self.address is not None
-        has_gps = self.latitude is not None or self.longitude is not None
+        has_latitude = self.latitude is not None
+        has_longitude = self.longitude is not None
+
+        if has_latitude != has_longitude:
+            raise ValueError("Latitude and longitude muse both be provided together")
+        has_gps = has_latitude and has_longitude
         if has_address and has_gps:
             raise ValueError("GPS and address fields cannot be both at the same time")
         return self
