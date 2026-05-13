@@ -1,4 +1,5 @@
-import traceback
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.core.exceptions import EventNotFoundError, InvalidParentEventError, DatabaseError, EmptyUpdatePayloadError, \
     SelfParentEventError, ConflictingEventLocationError, UserInvitedNotFoundError, UserInviterNotFoundError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,6 @@ from app.mappers.event_mapper import EventMapper
 from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput, InvitationEmailInput
 from datetime import datetime
 from uuid import UUID
-
 from app.services.email_service import EmailService, get_email_service
 
 
@@ -56,34 +56,34 @@ class EventService:
         return event
 
     async def create_event(self, payload: CreateEventInput):
-        parent_id = None if payload.parent_id is None else payload.parent_id
+
+        parent_id = payload.parent_id
+
         if parent_id is not None:
             parent = await self.repo.get_event_by_id(parent_id)
             if not parent:
                 raise InvalidParentEventError()
 
-        try:
-            if payload.address:
-                address = EventMapper.to_address_entity(payload.address)
-                created_address = await self.address_repo.create_address(address)
-                address_id = created_address.id
-            else:
-                address_id = None
+        address = None
+        if payload.address:
+            address = EventMapper.to_address_entity(payload.address)
 
-            event = EventMapper.to_event_entity(payload)
-            event.address_id = address_id
+        event = EventMapper.to_event_entity(payload)
+
+        try:
+            if address:
+                created_address = await self.address_repo.create_address(address)
+                event.address_id = created_address.id
 
             if payload.audiences:
                 audience_ids = [a.id for a in payload.audiences]
                 audiences = await self.repo.get_audiences_by_ids(audience_ids)
                 event.audiences = audiences
 
-            result = await self.repo.create_event(event)
-            return result
+            return await self.repo.create_event(event)
 
-        except Exception as e:
-            print("ERROR:", e)
-            raise DatabaseError(str(e))
+        except SQLAlchemyError as e:
+            raise DatabaseError() from e
 
     async def update_event(self, event_id:UUID, payload:UpdateEventInput):
         event = await self.repo.get_event_by_id(event_id)
@@ -93,9 +93,6 @@ class EventService:
         data = payload.model_dump(exclude_unset=True)
         if not data:
             raise EmptyUpdatePayloadError()
-
-        if "parent_id" in data:
-            data["parent_id"] = None
 
         if "parent_id" in data and data["parent_id"] is not None:
             parent = await self.repo.get_event_by_id(data["parent_id"])

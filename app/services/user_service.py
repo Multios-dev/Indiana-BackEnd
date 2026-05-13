@@ -1,4 +1,5 @@
 from fastapi import Depends, BackgroundTasks
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.user.user_repository import UserRepository
@@ -107,48 +108,58 @@ class UserService:
             raise UserNotFoundError()
         return {"message": "User deleted successfully"}
 
-    async def create_user(self, payload: UserCreateInput, background_tasks: BackgroundTasks) -> User:
+    async def create_user(
+            self,
+            payload: UserCreateInput,
+            background_tasks: BackgroundTasks,
+    ) -> User:
+
+        home_address = (
+            UserMapper.to_address_entity(payload.home_address)
+            if payload.home_address
+            else None
+        )
+
+        residential_address = (
+            UserMapper.to_address_entity(payload.residential_address)
+            if payload.residential_address
+            else None
+        )
+
+        user_entity = UserMapper.to_user_entity(payload)
+
         try:
-            if payload.home_address:
-                home_address = UserMapper.to_address_entity(payload.home_address)
+            if home_address:
                 created_home = await self.address_repo.create_address(home_address)
-                home_id = created_home.id
-            else:
-                home_id = None
+                user_entity.home_address_id = created_home.id
 
-            if payload.residential_address:
-                residential_address = UserMapper.to_address_entity(payload.residential_address)
+            if residential_address:
                 created_residential = await self.address_repo.create_address(residential_address)
-                residential_id = created_residential.id
-            else:
-                residential_id = None
+                user_entity.residential_address_id = created_residential.id
 
-            user_entity = UserMapper.to_user_entity(payload)
-            user_entity.home_address_id = home_id
-            user_entity.residential_address_id = residential_id
             created_user = await self.repo.create_user(user_entity)
 
             contact = UserMapper.to_contact_entity(payload, created_user.id)
+
             if contact:
                 await self.contact_repo.create_contact(contact)
 
             full_user = await self.repo.get_user_by_id(created_user.id)
 
-            email = payload.contact.email if payload.contact and payload.contact.email else None
-            if email:
-                background_tasks.add_task(
-                    self.email_service.send_registration_email,
-                    to=email,
-                    last_name=created_user.last_name,
-                    first_name=created_user.first_names[0],
-                )
-
-            return full_user
-
-        except Exception as e:
-            print("⚠️ DatabaseError:", e)
-            traceback.print_exc()
+        except SQLAlchemyError as e:
             raise DatabaseError() from e
+
+        email = payload.contact.email if payload.contact and payload.contact.email else None
+
+        if email:
+            background_tasks.add_task(
+                self.email_service.send_registration_email,
+                to=email,
+                last_name=created_user.last_name,
+                first_name=created_user.first_names[0],
+            )
+
+        return full_user
 
     async def add_guardian(self, guardian_id: UUID, minor_id: UUID):
         existing = await self.guardian_repo.get_relationship(guardian_id, minor_id)

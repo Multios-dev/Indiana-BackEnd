@@ -1,4 +1,7 @@
 import traceback
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_repository import MembershipRepository
 from fastapi import Depends
@@ -62,9 +65,8 @@ class MembershipService:
         try:
             membership = MembershipMapper.to_membership_entity(payload)
             return await self.repo.create_membership(membership)
-        except Exception as e:
-            print("DatabaseError : ", e)
-            traceback.print_exc()
+
+        except SQLAlchemyError as e:
             raise DatabaseError() from e
 
     async def update_membership(self, membership_id: UUID, payload: UpdateMembershipInput):
