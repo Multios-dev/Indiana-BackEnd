@@ -56,32 +56,21 @@ class EventService:
         return event
 
     async def create_event(self, payload: CreateEventInput):
-
         parent_id = payload.parent_id
-
         if parent_id is not None:
             parent = await self.repo.get_event_by_id(parent_id)
             if not parent:
                 raise InvalidParentEventError()
 
-        address = None
-        if payload.address:
-            address = EventMapper.to_address_entity(payload.address)
-
+        address = EventMapper.to_address_entity(payload.address) if payload.address else None
         event = EventMapper.to_event_entity(payload)
 
+        if payload.audiences:
+            audience_ids = [a.id for a in payload.audiences]
+            event.audiences = await self.repo.get_audiences_by_ids(audience_ids)
+
         try:
-            if address:
-                created_address = await self.address_repo.create_address(address)
-                event.address_id = created_address.id
-
-            if payload.audiences:
-                audience_ids = [a.id for a in payload.audiences]
-                audiences = await self.repo.get_audiences_by_ids(audience_ids)
-                event.audiences = audiences
-
-            return await self.repo.create_event(event)
-
+            return await self.repo.create_event(event, address=address)
         except SQLAlchemyError as e:
             raise DatabaseError() from e
 
