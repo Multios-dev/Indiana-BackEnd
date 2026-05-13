@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 from app.db.models.user_model import User
+from app.db.models.address_model import Address
+from app.db.models.contact_model import Contact
 from app.db.repositories.user.user_interface import UserInterface
 from uuid import UUID
 from datetime import date
@@ -25,19 +27,41 @@ class UserRepository(UserInterface):
         # This session will be used to execute queries
         self.db = db
 
-    async def create_user(self, person: User):
-        self.db.add(person)
-        await self.db.commit()
-        await self.db.refresh(person)
+    async def create_user(
+            self,
+            person: User,
+            home_address: Address,
+            residential_address: Address | None = None,
+            contact: Contact | None = None,
+    ) -> User:
+        if home_address:
+            self.db.add(home_address)
+            await self.db.flush()  # generate home address id
+            person.home_address_id = home_address.id
 
-        stmt = (select(User)
-                .where(User.id == person.id)
-                .options(
-                    selectinload(User.contact),
-                    selectinload(User.home_address),
-                    selectinload(User.residential_address)
-                    )
-                )
+        if residential_address:
+            self.db.add(residential_address)
+            await self.db.flush()  # generate residential address id
+            person.residential_address_id = residential_address.id
+
+        self.db.add(person)
+        await self.db.flush()  # generate person id before assigning to contact
+
+        if contact:
+            contact.user_id = person.id
+            self.db.add(contact)
+
+        await self.db.commit()  # single commit — rollback everything if any step fails
+
+        stmt = (
+            select(User)
+            .where(User.id == person.id)
+            .options(
+                selectinload(User.contact),
+                selectinload(User.home_address),
+                selectinload(User.residential_address)
+            )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
