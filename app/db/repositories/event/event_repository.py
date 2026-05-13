@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.participation_model import Participation
 from app.db.repositories.event.event_interface import EventInterface
 from app.db.models.event_model import Event, Audience
+from app.db.models.address_model import Address
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, and_, func
 from uuid import UUID
@@ -53,16 +54,27 @@ class EventRepository(EventInterface):
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def create_event(self, event: Event):
-        self.db.add(event)
-        await self.db.commit()
-        await self.db.refresh(event)
+    async def create_event(
+            self,
+            event: Event,
+            address: Address | None = None,
+    ) -> Event:
+        if address:
+            self.db.add(address)
+            await self.db.flush()  # generate address id
+            event.address_id = address.id
 
-        # Reload with audiences
-        stmt = (select(Event)
-                .where(Event.id == event.id)
-                .options(selectinload(Event.audiences), selectinload(Event.address))
-                )
+        self.db.add(event)
+        await self.db.commit()  # single commit for everything
+
+        stmt = (
+            select(Event)
+            .where(Event.id == event.id)
+            .options(
+                selectinload(Event.audiences),
+                selectinload(Event.address)
+            )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
