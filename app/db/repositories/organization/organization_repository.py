@@ -1,4 +1,6 @@
 from app.db.models.organization_model import Organization
+from app.db.models.contact_model import Contact
+from app.db.models.address_model import Address
 from app.db.repositories.organization.organization_interface import OrganizationInterface
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
@@ -60,18 +62,34 @@ class OrganizationRepository(OrganizationInterface):
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def create_organization(self, organization: Organization):
-        self.db.add(organization)
-        await self.db.commit()
-        await self.db.refresh(organization)
+    async def create_organization(
+            self,
+            organization: Organization,
+            address: Address | None = None,
+            contact: Contact | None = None,
+    ) -> Organization:
+        if address:
+            self.db.add(address)
+            await self.db.flush()  # generate address id
+            organization.address_id = address.id
 
-        stmt = (select(Organization)
-                .where(Organization.id == organization.id)
-                .options(
-                    selectinload(Organization.contact),
-                    selectinload(Organization.address)
-                    )
-                )
+        self.db.add(organization)
+        await self.db.flush()  # generate organization id before assigning to contact
+
+        if contact:
+            contact.org_id = organization.id
+            self.db.add(contact)
+
+        await self.db.commit()  # single commit for everything
+
+        stmt = (
+            select(Organization)
+            .where(Organization.id == organization.id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 

@@ -46,34 +46,21 @@ class OrganizationService:
         return organization
 
     async def create_organization(self, payload: CreateOrganizationInput) -> Organization:
-
         if payload.parent_id is not None:
             parent = await self.repo.get_organization_by_id(payload.parent_id)
-
             if not parent:
                 raise InvalidParentOrganizationError()
 
-        address = None
-        if payload.address:
-            address = OrganizationMapper.to_address_entity(payload.address)
-
+        address = OrganizationMapper.to_address_entity(payload.address) if payload.address else None
         organization = OrganizationMapper.to_organization_entity(payload)
+        contact = OrganizationMapper.to_contact_entity(payload, org_id=None)  # id assigned in repo
 
         try:
-            if address:
-                created_address = await self.address_repo.create_address(address)
-                organization.address_id = created_address.id
-
-            created = await self.repo.create_organization(organization)
-
-            contact = OrganizationMapper.to_contact_entity(payload, created.id)
-
-            if contact:
-                await self.contact_repo.create_contact(contact)
-                created = await self.repo.get_organization_by_id(created.id)
-
-            return created
-
+            return await self.repo.create_organization(
+                organization,
+                address=address,
+                contact=contact,
+            )
         except SQLAlchemyError as e:
             raise DatabaseError() from e
 
