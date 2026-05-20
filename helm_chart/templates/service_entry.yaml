@@ -1,6 +1,6 @@
 {{- range .Values.serviceEntries }}
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
   name: {{ .name }}
