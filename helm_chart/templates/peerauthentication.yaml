@@ -1,0 +1,15 @@
+{{- if and .Values.zeroTrust.enabled .Values.zeroTrust.mtlsStrict }}
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: {{ .Release.Name }}-mtls
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+
+ 
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.nameOverride | default .Release.Name }}  
+  mtls:
+    mode: STRICT
+{{- end }}
