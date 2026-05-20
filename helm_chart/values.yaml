@@ -115,21 +115,26 @@ virtualService:
 
 
 #serviceEntry (Istio) ------------------------------------------------------
-serviceEntry:
-  enabled: true
-  # On peut forcer un nom spécifique, ou le laisser vide pour utiliser le nom de la release Helm
-  name: "ovh-postgres-entry"
-  
-  location: "MESH_EXTERNAL"
-  resolution: "DNS"
-  
-  hosts:
-    - "postgresql-fbe70990-oa7247cc6.database.cloud.ovh.net"
-  
-  ports:
-    - number: 20184
-      name: "tcp-postgres"
-      protocol: "TCP"
+serviceEntries:
+  - name: "ovh-postgres-entry"
+    location: "MESH_EXTERNAL"
+    resolution: "DNS"
+    hosts:
+      - "postgresql-fbe70990-oa7247cc6.database.cloud.ovh.net"
+    ports:
+      - number: 20184
+        name: "tcp-postgres"
+        protocol: "TCP"
+
+  - name: "scaleway-api-entry"
+    location: "MESH_EXTERNAL"
+    resolution: "DNS"
+    hosts:
+      - "api.scaleway.com"
+    ports:
+      - number: 443
+        name: "https-scaleway"
+        protocol: "HTTPS"
 
 # Waypoint (Istio Ambient Mesh) ------------------------------------------------------
 
@@ -194,6 +199,8 @@ zeroTrust:
         protocol: TCP
       # 2.2. Base de données externe (OVH)
       - port: 20184
+        protocol: TCP
+      - port: 443       
         protocol: TCP
   # 3. Règles d'autorisation Istio (Couche L7 via Waypoint)
   authorizationPolicies:
