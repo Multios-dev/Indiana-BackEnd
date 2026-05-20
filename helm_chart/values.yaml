@@ -31,7 +31,7 @@ replicaCount: 1
 
 # Configuration de l'image du conteneur
 image:
-  repository: "2y3zp3k0.c1.de1.container-registry.ovh.net/teris/indiana-backend-api"
+  repository: "2y3zp3k0.c1.de1.container-registry.ovh.net/teris/indiana-backend"
   tag: "v1.0.4"
   pullPolicy: "IfNotPresent"
 
