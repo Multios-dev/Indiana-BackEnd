@@ -24,7 +24,7 @@ rbac:
 nameOverride: "indiana-backend"
 
 # Version de l'application (utilisée dans les labels du template)
-appVersion: "1.0.4"
+appVersion: "1.0.5"
 
 # Nombre de réplicas pour le Deployment
 replicaCount: 1
