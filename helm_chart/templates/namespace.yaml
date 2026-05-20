@@ -11,7 +11,5 @@ metadata:
     {{- end }}
     
     # On ajoute le Waypoint uniquement si un nom est fourni
-    {{- if .Values.namespace.istio.waypointName }}
-    istio.io/use-waypoint: {{ .Values.namespace.istio.waypointName }}
-    {{- end }}
+  
 {{- end }}

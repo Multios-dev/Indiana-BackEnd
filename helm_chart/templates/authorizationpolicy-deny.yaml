@@ -1,0 +1,13 @@
+{{- if and .Values.zeroTrust.enabled .Values.zeroTrust.authorizationPolicies.enabled .Values.zeroTrust.authorizationPolicies.defaultDeny }}
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}-deny-all
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    # On utilise la valeur du values.yaml, sinon on génère un nom standard
+    name: {{ .Values.waypoint.name | default (printf "%s-waypoint" .Release.Name) }}
+{{- end }}

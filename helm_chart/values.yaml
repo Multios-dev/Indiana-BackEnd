@@ -10,7 +10,14 @@ namespace:
   # Configuration spécifique à Istio Ambient Mesh
   istio:
     ambientMode: true
-    waypointName: "indiana-waypoint"
+
+# RBAC (Role-Based Access Control) ------------------------------------------------------
+rbac:
+  enabled: true
+  rules:
+    - apiGroups: [""]
+      resources: [""]
+      verbs: ["", ""]
 
 # DEPLOYMENT -------------------------------------------------------------
 # Optionnel : Remplace le nom généré par la release Helm s'il est défini
@@ -40,7 +47,10 @@ readinessProbe:
   initialDelaySeconds: 10
   periodSeconds: 10
 # variables d'environnement
-env : ""
+envFrom: 
+  - secretRef:
+      name: indiana-db-secret-test
+      
 volumeMounts:
   # - name: nginx-cache
   #   mountPath: /var/cache/nginx
@@ -135,10 +145,65 @@ waypoint:
 # Sécurité du conteneur (Pod Security Context)-----------------------------------------
 securityContext:
   enabled: true
-  runAsUser: 1000
+  runAsUser: 10001
+  runAsGroup: 10001
   runAsNonRoot: true
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:
     drop:
       - ALL
+
+externalSecret:
+  enabled: true
+  targetName: indiana-db-secret-test
+  storeName: scaleway-cluster-store
+  storeKind: ClusterSecretStore
+  refreshInterval: "1h"
+  
+  # On crée une liste des secrets à importer
+  data:
+    - secretKey: DATABASE_URL
+      remoteRefKey: "id:913fb2df-e2f1-4176-83ae-d7d773c9f2d5"
+      property: DATABASE_URL # NOUVEAU : Cible la clé exacte dans le JSON
+      
+    - secretKey: KEYCLOAK_URL
+      remoteRefKey: "id:913fb2df-e2f1-4176-83ae-d7d773c9f2d5"
+      property: KEYCLOAK_URL
+    # - secretKey: DATABASE_URL_2
+    #   remoteRefKey: 
+
+
+# ZERO TRUST & SÉCURITÉ RÉSEAU ---------------------------------------------
+zeroTrust:
+  enabled: true
+  
+  # 1. Forcer le chiffrement mTLS strict entre les pods
+  mtlsStrict: true
+  
+  # 2. Filet de sécurité K8s (Couche L4)
+  networkPolicy:
+    enabled: true
+    # Port HBONE utilisé par le Ztunnel dans Ambient Mesh pour le trafic chiffré
+    ambientHbonePort: 15008
+    egressPorts:
+      # 2.1. DNS (Vital pour résoudre les noms de domaine)
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      # 2.2. Base de données externe (OVH)
+      - port: 20184
+        protocol: TCP
+  # 3. Règles d'autorisation Istio (Couche L7 via Waypoint)
+  authorizationPolicies:
+    enabled: true
+    
+    # Règle d'or du Zero Trust : Tout bloquer par défaut
+    defaultDeny: true
+    
+    # Autoriser uniquement la passerelle d'entrée à parler au service (via Waypoint)
+    allowIngress:
+      enabled: true
+      # Remplace ceci par le Service Account exact de ton ingress Istio et des services qui doivent accéder au backend (typiquement le namespace/sa de la passerelle d'entrée)
+      sourcePrincipals: ["cluster.local/ns/istio-ingress/sa/ingress", "cluster.local/ns/indiana/sa/indiana-frontend-sa" ]
