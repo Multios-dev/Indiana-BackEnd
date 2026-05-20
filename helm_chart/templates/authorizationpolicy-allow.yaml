@@ -1,0 +1,23 @@
+{{- if and .Values.zeroTrust.enabled .Values.zeroTrust.authorizationPolicies.enabled .Values.zeroTrust.authorizationPolicies.allowIngress.enabled }}
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}-allow-ingress
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ .Values.waypoint.name | default (printf "%s-waypoint" .Release.Name) }}
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        {{- range .Values.zeroTrust.authorizationPolicies.allowIngress.sourcePrincipals }}
+          - "{{ . }}"
+        {{- end }}
+    to:
+    - operation:
+        ports: ["{{ .Values.servicePort }}"]
+{{- end }}

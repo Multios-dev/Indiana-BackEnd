@@ -1,0 +1,67 @@
+name: Build, Push and Keyless Sign (ARC GitOps Flow)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm_chart/values.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write 
+
+jobs:
+  deploy:
+    runs-on: [arc-runner-set] # Tes labels ARC
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Tag from values.yaml
+        id: extract_tag
+        run: |
+          EXTRACTED_TAG=$(grep 'tag:' helm_chart/values.yaml | awk -F'"' '{print $2}')
+          if [ -z "$EXTRACTED_TAG" ]; then
+            echo "Erreur : Impossible de trouver le tag"
+            exit 1
+          fi
+          echo "TAG_NAME=$EXTRACTED_TAG" >> $GITHUB_ENV
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      # 1. Configuration de Buildx (Indispensable pour les runners K8s)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_DOMAIN }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      # 2. Build & Push avec l'action officielle (gère le cache et le digest)
+      - name: Build and push
+        id: build_push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.HARBOR_DOMAIN }}/teris/indiana-backend-api:${{ env.TAG_NAME }}
+          platforms: linux/amd64
+          # Optionnel mais très recommandé pour accélérer les runners ARC :
+          # cache-from: type=registry,ref=${{ secrets.HARBOR_DOMAIN }}/teris/indiana-backend-api:buildcache
+          # cache-to: type=registry,ref=${{ secrets.HARBOR_DOMAIN }}/teris/indiana-backend-api:buildcache,mode=max
+
+      # 3. Signature Keyless simplifiée
+      - name: Keyless Sign
+        run: |
+          # On utilise l'output "digest" généré directement par l'étape précédente
+          IMAGE_URI="${{ secrets.HARBOR_DOMAIN }}/teris/indiana-backend-api@${{ steps.build_push.outputs.digest }}"
+          
+          echo "Signing image: $IMAGE_URI"
+          cosign sign --yes "$IMAGE_URI"

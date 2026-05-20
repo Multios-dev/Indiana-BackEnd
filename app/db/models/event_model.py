@@ -1,10 +1,12 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
 class Event(Base):
     __tablename__ = "events"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -13,56 +15,71 @@ class Event(Base):
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
 
-    # Coordonnées géographiques
+    # Geographic coordinates
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    # Référence vers l'événement parent
+    max_participants = Column(Integer, nullable=False)
+
+    # Reference to the parent event
     parent_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("events.id"),
+        nullable=True
+    )
+    # Reference to the address
+    address_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("addresses.id"),
         nullable=True
     )
 
     # -------------------------
-    # RELATIONS HIERARCHIQUES
+    # RELATIONSHIPS
     # -------------------------
-    # Organisation parent
+    # Parent organization
     parent = relationship(
         "Event",
-        remote_side=[id],
+        remote_side=lambda: [Event.id],
         back_populates="children"
     )
-
-    # Sous-organisations
+    # Sub-organizations
     children = relationship(
         "Event",
         back_populates="parent",
         cascade="all, delete",
         passive_deletes=True
     )
-
-    # Relation N-N avec Audience
+    # N-N relationshop with Audience
     audiences = relationship(
         "Audience",
         secondary="event_audience",
         back_populates="events"
     )
+    address = relationship(
+        "Address",
+        foreign_keys=[address_id],
+        back_populates="events",
+        uselist=False
+    )
 
+    participations = relationship("Participation", back_populates="event")
+
+# Mapping table
 class Audience(Base):
     __tablename__ = "audiences"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     label = Column(String, nullable=False, unique=True)
 
-    # relation inverse
+    # Inverse relationship
     events = relationship(
         "Event",
         secondary="event_audience",
         back_populates="audiences"
     )
 
-# Table d'association
+# Association table
 event_audience = Table(
     "event_audience",
     Base.metadata,

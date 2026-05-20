@@ -1,11 +1,13 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
-# Représente une organisation (unité, groupe, etc.)
+# Represents an organization (unit, group, etc.)
 class Organization(Base):
     __tablename__ = "organizations"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     acronym = Column(String, nullable=True)
     logo = Column(String, nullable=True)
@@ -15,46 +17,53 @@ class Organization(Base):
     billable = Column(Boolean, nullable=False, default=False)
     is_legal_entity = Column(Boolean, nullable=False, default=False)
 
-    # Référence vers l'organisation parent
+    # Reference to the parent organizaion
     parent_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=True
     )
 
-    # -------------------------
-    # RELATIONS HIERARCHIQUES
-    # -------------------------
-    # Organisation parent
-    parent = relationship(
-        "Organization",
-        remote_side=[id],
-        back_populates="children"
+    # Reference to address
+    address_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("addresses.id", ondelete="CASCADE"),
+        nullable=True
     )
 
-    # Sous-organisations
+    # -------------------------
+    # RELATIONSHIPS
+    # -------------------------
+    # Parent organization
+    parent = relationship(
+        "Organization",
+        remote_side=lambda: [Organization.id],
+        back_populates="children"
+    )
+    # Sub-organizations
     children = relationship(
         "Organization",
         back_populates="parent",
         cascade="all, delete",
         passive_deletes=True
     )
-
-    # -------------------------
-    # AUTRES RELATIONS
-    # -------------------------
-    # Contact de l'organisation
+    # Organization contact
     contact = relationship(
         "Contact",
         back_populates="organization",
         uselist=False,
         passive_deletes=True
     )
-
-    # Membres de l'organisation
+    # Organization members
     memberships = relationship(
         "Membership",
         back_populates="organization",
         cascade="all, delete-orphan",
         passive_deletes=True
+    )
+    # Relationship to address
+    address = relationship(
+        "Address",
+        back_populates="organization",
+        uselist=False
     )

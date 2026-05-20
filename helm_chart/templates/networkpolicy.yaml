@@ -1,0 +1,35 @@
+{{- if and .Values.zeroTrust.enabled .Values.zeroTrust.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-netpol
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.nameOverride | default .Release.Name }}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  - ports:
+    - port: {{ .Values.zeroTrust.networkPolicy.ambientHbonePort }}
+      protocol: TCP
+  - ports:
+    - port: {{ .Values.servicePort }}
+      protocol: TCP
+      
+  egress:
+  {{- if .Values.zeroTrust.networkPolicy.egressPorts }}
+  # S'il y a des ports définis dans le values.yaml, on boucle dessus :
+  {{- range .Values.zeroTrust.networkPolicy.egressPorts }}
+  - ports:
+    - port: {{ .port }}
+      protocol: {{ .protocol | default "TCP" }} # Par défaut, on force TCP si non précisé
+  {{- end }}
+  {{- else }}
+  # Si la liste egressPorts est vide dans le values, on bloque tout explicitement
+  []
+  {{- end }}
+{{- end }}

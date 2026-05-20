@@ -1,11 +1,11 @@
 from datetime import date
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator, UUID4
 from decimal import Decimal
 from typing import Self
 
 class CreateMembershipInput(BaseModel):
-    user_id: int
-    organization_id: int
+    user_id: UUID4
+    organization_id: UUID4
     role: str
     start_date: date
     end_date: date | None = None
@@ -17,12 +17,12 @@ class CreateMembershipInput(BaseModel):
             raise ValueError("Price cannot be negative")
         return v
 
-    # model_validator permet de valider plusieurs champs ensemble
-    # ici, on compare start_date et end_date entre eux
-    # "self" = l'objet complet avec tous ses champs accessibles via self.xxx
+    # model_validator allows validating multiple fields together
+    # here, we compare start_date and end_date together
+    # "self" = the full object with all fields accessible via self.xxx
     @model_validator(mode="after")
     def validate_dates(self) -> Self:
-        if self.end_date and self.end_date < self.start_date:
+        if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValueError("End date cannot be less than start date")
         return self
 
@@ -39,6 +39,6 @@ class UpdateMembershipInput(BaseModel):
         return v
     @model_validator(mode="after")
     def validate_dates(self) -> Self:
-        if self.end_date and self.end_date < self.start_date:
+        if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValueError("End date cannot be less than start date")
         return self

@@ -1,64 +1,107 @@
 from app.db.models.organization_model import Organization
+from app.db.models.contact_model import Contact
+from app.db.models.address_model import Address
 from app.db.repositories.organization.organization_interface import OrganizationInterface
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
+from uuid import UUID
 
 class OrganizationRepository(OrganizationInterface):
+    ALLOWED_FILTERS = { "name", "acronym", "parent_id", "purpose", "org_type", "sgp_type", "billable", "is_legal_entity" }
+    TYPE_MAP = {
+        "name":str,
+        "acronym":str,
+        "parent_id": UUID,
+        "purpose":str,
+        "org_type": str,
+        "sgp_type": str,
+        "billable":bool,
+        "is_legal_entity":bool
+    }
+
     def __init__(self, db:AsyncSession):
-        # On garde une référence à la session db
-        # Cette session permettra d'exécuter les requêtes
+        # Keep a reference to the db session
+        # This session will be used to execute queries
         self.db = db
 
-    # Récupérer toutes les organisations
-    async def get_all_organizations(self, filters:dict | None = None):
-        stmt = select(Organization).options(selectinload(Organization.contact))
+    async def get_all_organizations(self, skip:int, limit:int, filters:dict | None = None):
+        stmt = (select(Organization)
+                .options(
+                    selectinload(Organization.contact),
+                    selectinload(Organization.address)
+                    )
+                )
         conditions=[]
 
         if filters:
-            allowed_filters = {
-                "name",
-                "acronym",
-                "parent_id",
-                "purpose",
-                "org_type",
-                "sgp_type",
-                "billable",
-                "is_legal_entity",
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Organization, key):
-                    conditions.append(getattr(Organization, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Organization, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Organization, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer une organisation par son id
-    async def get_organization_by_id(self, id:int):
-        stmt = select(Organization).where(Organization.id == id).options(selectinload(Organization.contact))
+    async def get_organization_by_id(self, org_id:UUID):
+        stmt = (select(Organization)
+                .where(Organization.id == org_id)
+                .options(
+                    selectinload(Organization.contact),
+                    selectinload(Organization.address)
+                    )
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer une organisation
-    async def create_organization(self, organization: Organization):
-        self.db.add(organization)
-        await self.db.commit()
-        await self.db.refresh(organization)
+    async def create_organization(
+            self,
+            organization: Organization,
+            address: Address | None = None,
+            contact: Contact | None = None,
+    ) -> Organization:
+        if address:
+            self.db.add(address)
+            await self.db.flush()  # generate address id
+            organization.address_id = address.id
 
-        stmt = select(Organization).where(Organization.id == organization.id).options(
-            selectinload(Organization.contact))
+        self.db.add(organization)
+        await self.db.flush()  # generate organization id before assigning to contact
+
+        if contact:
+            contact.org_id = organization.id
+            self.db.add(contact)
+
+        await self.db.commit()  # single commit for everything
+
+        stmt = (
+            select(Organization)
+            .where(Organization.id == organization.id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
-    # Modifier une organisation
-    async def update_organization(self, organization_id: int, data: dict):
+    async def update_organization(self, organization_id: UUID, data: dict):
         try:
-            stmt = select(Organization).where(Organization.id == organization_id)
+            stmt = (select(Organization)
+            .where(Organization.id == organization_id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+            )
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 
@@ -77,10 +120,15 @@ class OrganizationRepository(OrganizationInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer une organisation
-    async def delete_organization(self, organization_id: int):
+    async def delete_organization(self, organization_id:UUID):
         try:
-            stmt = select(Organization).where(Organization.id == organization_id).options(selectinload(Organization.contact))
+            stmt = (select(Organization)
+            .where(Organization.id == organization_id)
+            .options(
+                selectinload(Organization.contact),
+                selectinload(Organization.address)
+            )
+            )
             result = await self.db.execute(stmt)
             organization_found = result.scalar_one_or_none()
 

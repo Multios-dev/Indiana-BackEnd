@@ -1,0 +1,15 @@
+{{- if .Values.namespace.create }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  # On utilise le nom fourni, ou le namespace par défaut de la release Helm
+  name: {{ .Values.namespace.name | default .Release.Namespace }}
+  labels:
+    # On ajoute le label Ambient Mesh uniquement si activé
+    {{- if .Values.namespace.istio.ambientMode }}
+    istio.io/dataplane-mode: ambient
+    {{- end }}
+    
+    # On ajoute le Waypoint uniquement si un nom est fourni
+  
+{{- end }}

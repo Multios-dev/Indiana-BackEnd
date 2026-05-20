@@ -1,0 +1,20 @@
+from fastapi import Request, HTTPException
+from app.core.config import settings
+
+async def auth_middleware(request: Request, call_next):
+    # Public routes -> no authentication required
+    public_paths = ("/docs", "/openapi.json", "/healthz", "/auth/login")
+    if request.url.path in public_paths or request.method == "OPTIONS":
+        return await call_next(request)
+
+    authorization = request.headers.get("Authorization")
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization")
+
+    # Dev mode (bypass token validation if KEYCLOAK_URL isn't set)
+    if not settings.keycloak_url:
+        return await call_next(request)
+
+    # TODO: validate token against Keycloak when configured
+
+    return await call_next(request)

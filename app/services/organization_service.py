@@ -1,13 +1,17 @@
+import traceback
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
+from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
+from app.mappers.organization_mapper import OrganizationMapper
 from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, CreateOrganizationInput
-
 from app.core.exceptions import (
     OrganizationNotFoundError,
     EmptyUpdatePayloadError,
@@ -15,66 +19,52 @@ from app.core.exceptions import (
     InvalidParentOrganizationError,
     SelfParentOrganizationError,
 )
+from uuid import UUID
 
 def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
     contact_repo = ContactRepository(db)
-    return OrganizationService(repo, contact_repo)
+    address_repo = AddressRepository(db)
+    return OrganizationService(repo, contact_repo, address_repo)
 
 class OrganizationService:
-    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository):
+    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository, address_repo: AddressRepository):
         self.repo = repo
         self.contact_repo = contact_repo
+        self.address_repo = address_repo
 
-    async def get_all_organizations(self, filters: dict | None = None):
-        organizations = await self.repo.get_all_organizations(filters)
+    async def get_all_organizations(self, skip:int, limit:int, filters: dict | None = None):
+        organizations = await self.repo.get_all_organizations(skip, limit, filters)
         if not organizations:
             raise OrganizationNotFoundError()
         return organizations
 
-    async def get_organization_by_id(self, id: int):
-        organization = await self.repo.get_organization_by_id(id)
+    async def get_organization_by_id(self, org_id: UUID):
+        organization = await self.repo.get_organization_by_id(org_id)
         if not organization:
             raise OrganizationNotFoundError()
         return organization
 
     async def create_organization(self, payload: CreateOrganizationInput) -> Organization:
-        parent_id = None if payload.parent_id == 0 else payload.parent_id
-        if parent_id is not None:
-            parent = await self.repo.get_organization_by_id(parent_id)
+        if payload.parent_id is not None:
+            parent = await self.repo.get_organization_by_id(payload.parent_id)
             if not parent:
                 raise InvalidParentOrganizationError()
 
+        address = OrganizationMapper.to_address_entity(payload.address) if payload.address else None
+        organization = OrganizationMapper.to_organization_entity(payload)
+        contact = OrganizationMapper.to_contact_entity(payload, org_id=None)  # id assigned in repo
+
         try:
-            organization = Organization(
-                name=payload.name,
-                acronym=payload.acronym,
-                logo=payload.logo,
-                parent_id=parent_id,
-                purpose=payload.purpose,
-                org_type=payload.org_type,
-                sgp_type=payload.sgp_type,
-                billable=payload.billable,
-                is_legal_entity=payload.is_legal_entity,
+            return await self.repo.create_organization(
+                organization,
+                address=address,
+                contact=contact,
             )
-            created = await self.repo.create_organization(organization)
+        except SQLAlchemyError as e:
+            raise DatabaseError() from e
 
-            # Créer le contact si fourni
-            if payload.contact:
-                contact = Contact(
-                    email=payload.contact.email,
-                    phone=payload.contact.phone,
-                    website=payload.contact.website,
-                    org_id=created.id,
-                )
-                await self.contact_repo.create_contact(contact)
-                created = await self.repo.get_organization_by_id(created.id)  # ← recharge avec la relation contact
-
-            return created
-        except Exception:
-            raise DatabaseError()
-
-    async def update_organization(self, organization_id: int, payload: UpdateOrganizationInput):
+    async def update_organization(self, organization_id: UUID, payload: UpdateOrganizationInput):
         organization = await self.repo.get_organization_by_id(organization_id)
         if not organization:
             raise OrganizationNotFoundError()
@@ -93,15 +83,14 @@ class OrganizationService:
             if data["parent_id"] == organization_id:
                 raise SelfParentOrganizationError()
 
-        # Gérer le contact séparément
+        # Handle contact separately
         contact_data = data.pop("contact", None)
-
         if contact_data:
             if organization.contact:
-                # Modifier le contact existant
+                # Update the existing contact
                 await self.contact_repo.update_contact(organization.contact.id, contact_data)
             else:
-                # Créer un nouveau contact
+                # Crate a new contact
                 contact = Contact(
                     email=contact_data.get("email"),
                     phone=contact_data.get("phone"),
@@ -110,7 +99,13 @@ class OrganizationService:
                 )
                 await self.contact_repo.create_contact(contact)
 
-        # Mettre à jour les champs de l'organisation
+        address_data = data.pop("address", None)
+        if address_data is not None:
+            new_address = OrganizationMapper.to_address_entity(payload.address)
+            created = await self.address_repo.create_address(new_address)
+            data["address_id"] = created.id
+
+        # Update the organization's fields
         if data:
             updated = await self.repo.update_organization(organization_id, data)
             if not updated:
@@ -119,7 +114,7 @@ class OrganizationService:
 
         return organization
 
-    async def delete_organization(self, organization_id: int):
+    async def delete_organization(self, organization_id:UUID):
         deleted = await self.repo.delete_organization(organization_id)
         if not deleted:
             raise OrganizationNotFoundError()

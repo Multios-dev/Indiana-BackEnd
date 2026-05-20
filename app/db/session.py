@@ -1,16 +1,15 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from app.core.config import settings
 
-DATABASE_URL = "postgresql+asyncpg://avnadmin:7bgJpfo0RVhv8A5DrLe1@postgresql-fbe70990-oa7247cc6.database.cloud.ovh.net:20184/indiana_test"
-
-# engine est un objet qui gère la connexion à la base de données
-# il peut ouvrir des connexions et envoyer des requêtes sql
+# engine is an object that manages the database connection
+# it can open connections and send SQL queries
 engine = create_async_engine(
-    DATABASE_URL,
-    echo=True, # affiche les requêtes sql dans le terminal
+    settings.database_url,
+    echo=True, # prints SQL queries in the terminal
 )
 
-# SessionLocal fabrique des sessions
-# chaque requête API aura sa propre session
+# SessionLocal creates sessions
+# each API request will have its own session
 SessionLocal = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
@@ -18,12 +17,12 @@ SessionLocal = async_sessionmaker(
     autoflush=False
 )
 
-# Fonctione utilisée pour obtenir une session DB
-# FastAPI l'utilisera avec Depends(get_db)
+# Function used to obtain a DB session
+# FastAPI will use it with Depends(get_db)
 async def get_db():
     """
-    Crée une session de base de données et la ferme
-    automatiquement après la requête
+    Creates a database session and closes it
+    automatically after the request
     """
     async with SessionLocal() as session:
         yield session

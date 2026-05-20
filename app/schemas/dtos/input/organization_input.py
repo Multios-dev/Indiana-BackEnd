@@ -1,7 +1,7 @@
 import re
-from pydantic import BaseModel, field_validator, EmailStr
+from pydantic import BaseModel, field_validator, EmailStr, UUID4
 from app.db.models.enums.organization_type import OrganizationType
-
+from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
 class ContactInput(BaseModel):
     email:EmailStr | None = None
     phone:str | None = None
@@ -18,7 +18,7 @@ class ContactInput(BaseModel):
     def validate_website(cls, v):
         if v is None:
             return None
-        # Accepte http:// ou https://
+        # Accepts http:// or https://
         if not re.match(r"^https?://", v):
             raise ValueError("website must start with http:// or https://")
         return v
@@ -27,22 +27,24 @@ class CreateOrganizationInput(BaseModel):
     name: str
     acronym: str | None = None
     logo: str | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     purpose: str
     org_type: OrganizationType | None = None
     sgp_type: str | None = None
     billable: bool
     is_legal_entity: bool = False
     contact:ContactInput | None = None
+    address:AddressCreateInput | None = None
 
 class UpdateOrganizationInput(BaseModel):
     name: str | None = None
     acronym: str | None = None
     logo: str | None = None
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     purpose: str | None = None
     org_type: OrganizationType | None = None
     sgp_type: str | None = None
     billable: bool | None = None
     is_legal_entity: bool | None = None
     contact:ContactInput | None = None
+    address:AddressUpdateInput | None = None

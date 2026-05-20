@@ -1,43 +1,47 @@
+import uuid
+
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+import uuid
 
-# Représente les informations de contact
-# Un contact peut être associé à un utilisateur ou une organisation
+# Represents contact information
+# A contact can be associated with a user or an organization
 class Contact(Base):
     __tablename__ = "contacts"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     website = Column(String, nullable=True)
 
     # -------------------------
-    # CLÉS ÉTRANGÈRES
+    # FOREIGN KEYS
     # -------------------------
-    # Référence vers un utilisateur (optionnel)
+    # Reference to a user (optional)
     user_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True
     )
-    # Référence vers une organisation (optionnel)
+    # Reference to an organization (optional)
     org_id = Column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=True
     )
 
     # -------------------------
-    # RELATIONS
+    # RELATIONSHIPS
     # -------------------------
-    # Relation vers User
-    # back_populates="contact" correspond à User.contact
+    # Relationship to User
+    # back_populates="contact" matches User.contact
     user = relationship(
         "User",
         back_populates="contact"
     )
-    # Relation vers Organization
-    # back_populates="contact" correspond à Organization.contact
+    # Relationship to Organization
+    # back_populates="contact" matches Organization.contact
     organization = relationship(
         "Organization",
         back_populates="contact"

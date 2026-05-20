@@ -9,3 +9,7 @@ __pycache__/
 
 # Alembic cache
 alembic/__pycache__/
+
+app.zip
+
+.env

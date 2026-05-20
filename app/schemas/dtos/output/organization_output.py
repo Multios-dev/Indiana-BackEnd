@@ -1,10 +1,9 @@
-from pydantic import BaseModel
-
+from pydantic import BaseModel, UUID4
 from app.db.models.enums.organization_type import OrganizationType
-
+from app.schemas.dtos.output.address_output import AddressOutput
 
 class ContactOutput(BaseModel):
-    id: int
+    id: UUID4
     email: str | None = None
     phone: str | None = None
     website: str | None = None
@@ -12,7 +11,7 @@ class ContactOutput(BaseModel):
     model_config = {"from_attributes": True}
 
 class OrganizationOutput(BaseModel):
-    id: int
+    id: UUID4
     name: str
     acronym: str | None = None
     purpose: str
@@ -20,7 +19,8 @@ class OrganizationOutput(BaseModel):
     sgp_type: str | None = None
     billable: bool
     is_legal_entity: bool
-    parent_id: int | None = None
+    parent_id: UUID4 | None = None
     contact: ContactOutput | None = None
+    address: AddressOutput | None = None
 
     model_config = {"from_attributes": True}

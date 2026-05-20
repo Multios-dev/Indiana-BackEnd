@@ -4,7 +4,7 @@ from app.db.base import Base
 from app.db.model_loader import load_all_models
 
 async def init_db():
-    load_all_models()  # s'assure que tous les modèles sont connus avant create_all
+    load_all_models()  # ensures all models are loaded before create_all
     async with engine.begin() as conn:
         result = await conn.execute(text(
             "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')"
@@ -12,8 +12,8 @@ async def init_db():
         exists = result.scalar()
 
         if not exists:
-            print("Aucune table trouvée. Création...")
+            print("No tables found. Creating...")
             await conn.run_sync(Base.metadata.create_all)
-            print("Tables créées avec succès")
+            print("Tables created successfully")
         else:
-            print("Les tables existent déjà")
+            print("Tables already exist")

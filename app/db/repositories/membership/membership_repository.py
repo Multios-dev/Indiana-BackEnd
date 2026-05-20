@@ -1,47 +1,51 @@
 from sqlalchemy.exc import SQLAlchemyError
-
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_interface import MembershipInterface
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from uuid import UUID
+from datetime import datetime
 
 class MembershipRepository(MembershipInterface):
-    def __init__(self, db:AsyncSession):
-        # On garde une référence à la session db
-        # Cette session permettra d'exécuter les requêtes
+    ALLOWED_FILTERS = { "user_id", "organization_id", "role", "start_date", "end_date" }
+    TYPE_MAP = {
+        "user_id": UUID,
+        "organization_id": UUID,
+        "role": str,
+        "start_date": datetime,
+        "end_date": datetime
+    }
+    def __init__(self, db: AsyncSession):
+        # Keep a reference to the database session
+        # This session will be used to execute queries
         self.db = db
 
-    async def get_memberships(self, filters:dict | None = None):
+    async def get_memberships(self, skip:int, limit:int, filters:dict | None = None):
         stmt = select(Membership)
         conditions = []
 
         if filters:
-            allowed_filters = {
-                "user_id",
-                "organization_id",
-                "role",
-                "start_date",
-                "end_date"
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Membership, key):
-                    conditions.append(getattr(Membership, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Membership, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Membership, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer un mandat spécifique
-    async def get_membership_by_id(self, membership_id:int):
+    async def get_membership_by_id(self, membership_id:UUID):
         stmt = select(Membership).where(Membership.id == membership_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer un mandat
     async def create_membership(self, membership: Membership) -> Membership:
         try:
             self.db.add(membership)
@@ -53,8 +57,7 @@ class MembershipRepository(MembershipInterface):
             print("DB ERROR:", e)
             raise
 
-    # Modifier un mandat
-    async def update_membership(self, membership_id:int, data:dict):
+    async def update_membership(self, membership_id:UUID, data:dict):
         try:
             stmt = select(Membership).where(Membership.id == membership_id)
             result = await self.db.execute(stmt)
@@ -75,8 +78,7 @@ class MembershipRepository(MembershipInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer un mandat
-    async def delete_membership(self, membership_id:int)->None:
+    async def delete_membership(self, membership_id:UUID)->None:
         try:
             stmt = select(Membership).where(Membership.id == membership_id)
             result = await self.db.execute(stmt)

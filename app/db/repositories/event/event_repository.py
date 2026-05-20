@@ -1,58 +1,84 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.db.models.participation_model import Participation
 from app.db.repositories.event.event_interface import EventInterface
-
 from app.db.models.event_model import Event, Audience
-
+from app.db.models.address_model import Address
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
+from uuid import UUID
+from datetime import datetime
 
 class EventRepository(EventInterface):
+    ALLOWED_FILTERS = {"name", "event_type", "start_date", "end_date"}
+    TYPE_MAP = {
+        "name": str,
+        "event_type": str,
+        "start_date": datetime,
+        "end_date": datetime,
+    }
+
     def __init__(self, db:AsyncSession):
         self.db = db
 
-    # Récupérer tous les événements
-    async def get_all_events(self, filters:dict | None = None):
-        stmt = select(Event).options(selectinload(Event.audiences))
+    async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
+        stmt = (select(Event)
+                .options(
+            selectinload(Event.audiences),
+                    selectinload(Event.address)
+                )
+        )
         conditions=[]
 
         if filters:
-            allowed_filters = {
-                "name",
-                "event_type",
-                "start_date",
-                "end_date"
-            }
-
             for key, value in filters.items():
-                if key in allowed_filters and hasattr(Event, key):
-                    conditions.append(getattr(Event, key) == value)
+                if key not in self.ALLOWED_FILTERS or not hasattr(Event, key):
+                    continue
+                try:
+                    casted = self.TYPE_MAP[key](value)
+                    conditions.append(getattr(Event, key) == casted)
+                except (ValueError, TypeError):
+                    continue
 
         if conditions:
             stmt = stmt.where(and_(*conditions))
 
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    # Récupérer un événement spécifique
-    async def get_event_by_id(self, event_id:int):
-        stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+    async def get_event_by_id(self, event_id:UUID):
+        stmt = (select(Event)
+                .where(Event.id == event_id)
+                .options(selectinload(Event.audiences), selectinload(Event.address))
+                )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    # Créer un événement
-    async def create_event(self, event: Event):
-        self.db.add(event)
-        await self.db.commit()
-        await self.db.refresh(event)
+    async def create_event(
+            self,
+            event: Event,
+            address: Address | None = None,
+    ) -> Event:
+        if address:
+            self.db.add(address)
+            await self.db.flush()  # generate address id
+            event.address_id = address.id
 
-        # Recharger avec les audiences
-        stmt = select(Event).where(Event.id == event.id).options(selectinload(Event.audiences))
+        self.db.add(event)
+        await self.db.commit()  # single commit for everything
+
+        stmt = (
+            select(Event)
+            .where(Event.id == event.id)
+            .options(
+                selectinload(Event.audiences),
+                selectinload(Event.address)
+            )
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 
-    # Modifier un événement
-    async def update_event(self, event_id, data: dict):
+    async def update_event(self, event_id:UUID, data: dict):
         try:
             stmt = select(Event).where(Event.id == event_id)
             result = await self.db.execute(stmt)
@@ -67,8 +93,11 @@ class EventRepository(EventInterface):
 
             await self.db.commit()
 
-            # Recharger avec les audiences
-            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
+            # Reload with audiences and addresses
+            stmt = (select(Event)
+                    .where(Event.id == event_id)
+                    .options(selectinload(Event.audiences), selectinload(Event.address))
+                    )
             result = await self.db.execute(stmt)
             return result.scalar_one()
 
@@ -76,23 +105,38 @@ class EventRepository(EventInterface):
             await self.db.rollback()
             raise
 
-    # Supprimer une organisation
-    async def delete_event(self, event_id:int):
+    async def delete_event(self, event_id: UUID):
+        stmt = (
+            select(Event)
+            .where(Event.id == event_id)
+            .options(selectinload(Event.audiences), selectinload(Event.address))
+        )
+        result = await self.db.execute(stmt)
+        event_found = result.scalar_one_or_none()
+
+        if not event_found:
+            return None
+
+        await self.db.delete(event_found)
         try:
-            stmt = select(Event).where(Event.id == event_id).options(selectinload(Event.audiences))
-            result = await self.db.execute(stmt)
-            event_found = result.scalar_one_or_none()
-
-            if not event_found:
-                return None
-
-            await self.db.delete(event_found)
             await self.db.commit()
-            return True
-
         except Exception:
             await self.db.rollback()
             raise
+
+        return True
+
+    async def count_events(self) -> int:
+        stmt = select(func.count()).select_from(Event)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_participant_count(self, event_id: UUID) -> int:
+        stmt = select(func.count(Participation.id)).where(
+            Participation.event_id == event_id
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     async def get_audiences_by_ids(self, audience_ids: list[int]):
         stmt = select(Audience).where(Audience.id.in_(audience_ids))

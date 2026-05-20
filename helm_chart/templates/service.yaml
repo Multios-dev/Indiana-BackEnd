@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nameOverride | default .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.nameOverride | default .Release.Name }}
+    # --- LE LABEL MAGIQUE POUR LE ZERO TRUST (WAYPOINT) ---
+    {{- if and .Values.zeroTrust.enabled .Values.waypoint.enabled }}
+    istio.io/use-waypoint: {{ .Values.waypoint.name }}
+    {{- end }}
+spec:
+  # Optionnel mais recommandé : permet de choisir entre ClusterIP, NodePort ou LoadBalancer
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  
+  selector:
+    app: {{ .Values.nameOverride | default .Release.Name }}
+  
+    
+  # Attention à l'indentation ici : ports est au même niveau que selector
+  ports:
+    - name: http
+      port: {{ .Values.servicePort }}
+      targetPort: {{ .Values.servicePort }}
+      protocol: TCP

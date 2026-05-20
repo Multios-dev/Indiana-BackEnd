@@ -1,16 +1,24 @@
-from sqlalchemy import Column, Integer, ForeignKey, Numeric, String, Date
+from sqlalchemy import Column, Integer, ForeignKey, Numeric, String, Date, UUID
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
+import uuid
 
-# Représente l'appartenance d'un utilisateur à une organisation
+# Represents a user's membership in an organization
 class Membership(Base):
     __tablename__ = "memberships"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    # Clés étrangères
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    # Foreign keys
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
     role = Column(String, nullable=False)
     start_date = Column(Date, nullable=False)
@@ -18,15 +26,14 @@ class Membership(Base):
     price = Column(Numeric(10,2), nullable=True)
 
     # -------------------------
-    # RELATIONS
+    # RELATIONSHIPS
     # -------------------------
-    # Relation vers l'utilisateur
+    # Relation to the user
     user = relationship(
         "User",
         back_populates="memberships"
     )
-
-    # Relation vers l'organisation
+    # Relationship to the organization
     organization = relationship(
         "Organization",
         back_populates="memberships"

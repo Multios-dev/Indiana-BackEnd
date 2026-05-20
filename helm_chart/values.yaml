@@ -1,0 +1,209 @@
+
+# NAMESPACE ----------------------------------------------------------------
+# values.yaml (à ajouter)
+
+namespace:
+  create: false
+  # Si vide, on utilisera le nom de la release ou le namespace passé en ligne de commande
+  name: "indiana"
+  
+  # Configuration spécifique à Istio Ambient Mesh
+  istio:
+    ambientMode: true
+
+# RBAC (Role-Based Access Control) ------------------------------------------------------
+rbac:
+  enabled: true
+  rules:
+    - apiGroups: [""]
+      resources: [""]
+      verbs: ["", ""]
+
+# DEPLOYMENT -------------------------------------------------------------
+# Optionnel : Remplace le nom généré par la release Helm s'il est défini
+nameOverride: "indiana-backend"
+
+# Version de l'application (utilisée dans les labels du template)
+appVersion: "1.0.4"
+
+# Nombre de réplicas pour le Deployment
+replicaCount: 1
+
+# Configuration de l'image du conteneur
+image:
+  repository: "2y3zp3k0.c1.de1.container-registry.ovh.net/teris/indiana-backend-api"
+  tag: "v1.0.4"
+  pullPolicy: "IfNotPresent"
+
+# Port d'écoute du conteneur
+servicePort: 8000
+
+
+# Probes (readiness/liveness) pour vérifier la santé du conteneur
+readinessProbe:
+  enabled: true
+  # "/" pour le frontend, "/health" pour le backend
+  path: "/docs"
+  initialDelaySeconds: 10
+  periodSeconds: 10
+# variables d'environnement
+envFrom: 
+  - secretRef:
+      name: indiana-db-secret-test
+      
+volumeMounts:
+  # - name: nginx-cache
+  #   mountPath: /var/cache/nginx
+  # - name: nginx-pid
+  #   mountPath: /var/run
+  # - name: nginx-tmp
+  #   mountPath: /tmp
+ 
+# EmptyDir pour stocker les logs de l'application (exemple de volume)
+volumes:
+  # - name: nginx-cache
+  #   emptyDir: {}
+  # - name: nginx-pid
+  #   emptyDir: {}
+  # - name: nginx-tmp
+  #   emptyDir: {}
+# Ressources (CPU et mémoire) pour le conteneur
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+
+#---------------------------------------------------------------------------------
+
+# External-secrets 
+imagePullSecret:
+  enabled: true
+  name: "harbor-registry-secret"
+  refreshInterval: "1h"
+  
+  # Configuration du magasin de secrets (SecretStore ou ClusterSecretStore)
+  store:
+    name: "scaleway-cluster-store"
+    kind: "ClusterSecretStore"
+  
+  # L'identifiant unique du secret dans ton gestionnaire (Scaleway Secret Manager)
+  scalewaySecretId: "id:0f2fa850-eb76-47f1-a820-23bc82841ede"
+
+#SERVICE ----------------------------------------------------------------
+service:
+  type: "ClusterIP" 
+
+
+# HPA ----------------------------------------------------------------------
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  # Tu pourrais même ajouter la mémoire plus tard si besoin :
+  # targetMemoryUtilizationPercentage: 80
+
+
+# VirtualService (Istio) ------------------------------------------------------
+virtualService:
+  enabled: true
+  host: "backend.teris.be"
+  gateway: "istio-ingress/teris-gateway"
+
+
+#serviceEntry (Istio) ------------------------------------------------------
+serviceEntry:
+  enabled: true
+  # On peut forcer un nom spécifique, ou le laisser vide pour utiliser le nom de la release Helm
+  name: "ovh-postgres-entry"
+  
+  location: "MESH_EXTERNAL"
+  resolution: "DNS"
+  
+  hosts:
+    - "postgresql-fbe70990-oa7247cc6.database.cloud.ovh.net"
+  
+  ports:
+    - number: 20184
+      name: "tcp-postgres"
+      protocol: "TCP"
+
+# Waypoint (Istio Ambient Mesh) ------------------------------------------------------
+
+waypoint:
+  enabled: false
+  # Le nom doit correspondre à ce que le namespace ou les pods attendent
+  name: "indiana-waypoint"
+  
+  # Optionnel : définit à quoi s'applique ce waypoint (souvent "namespace" ou "service")
+  # "namespace" est la valeur recommandée par Istio pour capturer tout le trafic
+  for: "service"
+
+# Sécurité du conteneur (Pod Security Context)-----------------------------------------
+securityContext:
+  enabled: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+externalSecret:
+  enabled: true
+  targetName: indiana-db-secret-test
+  storeName: scaleway-cluster-store
+  storeKind: ClusterSecretStore
+  refreshInterval: "1h"
+  
+  # On crée une liste des secrets à importer
+  data:
+    - secretKey: DATABASE_URL
+      remoteRefKey: "id:913fb2df-e2f1-4176-83ae-d7d773c9f2d5"
+      property: DATABASE_URL # NOUVEAU : Cible la clé exacte dans le JSON
+      
+    - secretKey: KEYCLOAK_URL
+      remoteRefKey: "id:913fb2df-e2f1-4176-83ae-d7d773c9f2d5"
+      property: KEYCLOAK_URL
+    # - secretKey: DATABASE_URL_2
+    #   remoteRefKey: 
+
+
+# ZERO TRUST & SÉCURITÉ RÉSEAU ---------------------------------------------
+zeroTrust:
+  enabled: true
+  
+  # 1. Forcer le chiffrement mTLS strict entre les pods
+  mtlsStrict: true
+  
+  # 2. Filet de sécurité K8s (Couche L4)
+  networkPolicy:
+    enabled: true
+    # Port HBONE utilisé par le Ztunnel dans Ambient Mesh pour le trafic chiffré
+    ambientHbonePort: 15008
+    egressPorts:
+      # 2.1. DNS (Vital pour résoudre les noms de domaine)
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      # 2.2. Base de données externe (OVH)
+      - port: 20184
+        protocol: TCP
+  # 3. Règles d'autorisation Istio (Couche L7 via Waypoint)
+  authorizationPolicies:
+    enabled: true
+    
+    # Règle d'or du Zero Trust : Tout bloquer par défaut
+    defaultDeny: true
+    
+    # Autoriser uniquement la passerelle d'entrée à parler au service (via Waypoint)
+    allowIngress:
+      enabled: true
+      # Remplace ceci par le Service Account exact de ton ingress Istio et des services qui doivent accéder au backend (typiquement le namespace/sa de la passerelle d'entrée)
+      sourcePrincipals: ["cluster.local/ns/istio-ingress/sa/ingress", "cluster.local/ns/indiana/sa/indiana-frontend-sa" ]

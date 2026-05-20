@@ -1,14 +1,16 @@
+import traceback
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_repository import MembershipRepository
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
+from app.mappers.membership_mapper import MembershipMapper
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
-
 from app.core.exceptions import (
     MembershipNotFoundError,
     UserNotFoundError,
@@ -17,6 +19,7 @@ from app.core.exceptions import (
     EmptyUpdatePayloadError,
     DatabaseError,
 )
+from uuid import UUID
 
 def get_membership_service(db: AsyncSession = Depends(get_db)):
     repo = MembershipRepository(db)
@@ -35,13 +38,13 @@ class MembershipService:
         self.repo_user = repo_user
         self.repo_organization = repo_organization
 
-    async def get_memberships(self, filters: dict | None = None) -> list[Membership]:
-        memberships = await self.repo.get_memberships(filters)
+    async def get_memberships(self, skip:int, limit:int, filters: dict | None = None) -> list[Membership]:
+        memberships = await self.repo.get_memberships(skip, limit, filters)
         if not memberships:
             raise MembershipNotFoundError()
         return memberships
 
-    async def get_membership_by_id(self, membership_id: int) -> Membership:
+    async def get_membership_by_id(self, membership_id: UUID) -> Membership:
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise MembershipNotFoundError()
@@ -60,19 +63,13 @@ class MembershipService:
             raise InvalidDateRangeError()
 
         try:
-            membership = Membership(
-                user_id=payload.user_id,
-                organization_id=payload.organization_id,
-                role=payload.role,
-                start_date=payload.start_date,
-                end_date=payload.end_date,
-                price = payload.price
-            )
+            membership = MembershipMapper.to_membership_entity(payload)
             return await self.repo.create_membership(membership)
-        except Exception:
-            raise DatabaseError()
 
-    async def update_membership(self, membership_id: int, payload: UpdateMembershipInput):
+        except SQLAlchemyError as e:
+            raise DatabaseError() from e
+
+    async def update_membership(self, membership_id: UUID, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)
         if not membership:
             raise MembershipNotFoundError()
@@ -92,7 +89,7 @@ class MembershipService:
             raise MembershipNotFoundError()
         return updated
 
-    async def delete_membership(self, membership_id: int):
+    async def delete_membership(self, membership_id: UUID):
         deleted = await self.repo.delete_membership(membership_id)
         if not deleted:
             raise MembershipNotFoundError()

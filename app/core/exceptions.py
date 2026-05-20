@@ -1,37 +1,20 @@
 """
-Exceptions métier de l'application
+Exceptions for the application
 Principe :
-- Les services lèvent ces erreurs
-- Les routers ne gèrent rien
-- Un handler global transforme en HTTP
+- Services raise these errors
+- Routers handle nothing
+- A global handler converts them to HTTP responses
 """
 
-# Exception de base pour l'application dont toutes les erreurs métier doivent hériter
+# Base exception for the application - all errors must inherit from this
 class AppException(Exception):
     status_code = 400
     detail = "Application error"
 
-    # permet de pouvoir passer un message custom
+    # allows passing a custom message
     def __init__(self, detail:str | None = None):
         self.detail = detail or self.__class__.detail
         super().__init__(self.detail)
-
-# ==============================
-# 404 - NOT FOUND
-# ==============================
-class NotFoundError(AppException):
-    status_code = 404
-    detail = "Resource not found"
-class UserNotFoundError(NotFoundError):
-    detail = "User not found"
-class OrganizationNotFoundError(NotFoundError):
-    detail = "Organization not found"
-class MembershipNotFoundError(NotFoundError):
-    detail = "Membership not found"
-class ContactNotFoundError(NotFoundError):
-    detail = "Contact not found"
-class EventNotFoundError(NotFoundError):
-    detail = "Event not found"
 
 # ==============================
 # 400 - BAD REQUEST
@@ -55,6 +38,59 @@ class InvalidParentEventError(BadRequestError):
     detail = "Parent event does not exist"
 class SelfParentEventError(BadRequestError):
     detail = "An event cannot be its own parent"
+class ConflictingEventLocationError(BadRequestError):
+    detail = "An event cannot have both an address and GPS coordinates"
+
+# ==============================
+# 403 - BAD REQUEST
+# ==============================
+class ForbiddenError(AppException):
+    status_code = 403
+    detail = "Forbidden"
+class PasswordError(ForbiddenError):
+    detail = "Invalid password"
+class NotAllowedGuardianError(ForbiddenError):
+    detail = "Not a legal guardian"
+
+# ==============================
+# 404 - NOT FOUND
+# ==============================
+class NotFoundError(AppException):
+    status_code = 404
+    detail = "Resource not found"
+class UserNotFoundError(NotFoundError):
+    detail = "User not found"
+class OrganizationNotFoundError(NotFoundError):
+    detail = "Organization not found"
+class MembershipNotFoundError(NotFoundError):
+    detail = "Membership not found"
+class ContactNotFoundError(NotFoundError):
+    detail = "Contact not found"
+class EventNotFoundError(NotFoundError):
+    detail = "Event not found"
+class AddressNotFoundError(NotFoundError):
+    detail = "Address not found"
+class UserInvitedNotFoundError(NotFoundError):
+    detail = "User invited not found"
+class UserInviterNotFoundError(NotFoundError):
+    detail = "User inviter not found"
+class ParticipationNotFoundError(NotFoundError):
+    detail = "Participation not found"
+
+# ==============================
+# 409 - CONFLICT
+# ==============================
+class ConflictError(AppException):
+    status_code = 409
+    detail = "Conflict"
+class MaxGuardiansReachedError(ConflictError):
+    detail = "A minor cannot have more than 2 guardians"
+class RelationshipAlreadyExistsError(ConflictError):
+    detail = "This guardian is already assigned to this minor"
+class AlreadyInvitedError(ConflictError):
+    detail = "User is already invited to this event"
+class EventFullError(ConflictError):
+    detail = "Event has reached its maximum number of participants"
 
 # ==============================
 # 500 - SERVER ERROR
