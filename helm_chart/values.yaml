@@ -49,7 +49,7 @@ readinessProbe:
 # variables d'environnement
 envFrom: 
   - secretRef:
-      name: indiana-db-secret-test
+      name: indiana-backend-secret
       
 volumeMounts:
   # - name: nginx-cache
