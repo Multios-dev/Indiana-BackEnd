@@ -49,9 +49,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/indiana-backend:${{ env.TAG_NAME }}
-          cache-from: type=registry,ref=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/indiana-backend:cache
-          cache-to: type=registry,ref=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/indiana-backend:cache,mode=max
+          tags: ${{ secrets.HARBOR_REGISTRY }}/teris/indiana-backend:${{ env.TAG_NAME }}
+          cache-from: type=registry,ref=${{ secrets.HARBOR_REGISTRY }}/teris/indiana-backend:cache
+          cache-to: type=registry,ref=${{ secrets.HARBOR_REGISTRY }}/teris/indiana-backend:cache,mode=max
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
@@ -61,4 +61,4 @@ jobs:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           cosign sign --yes \
-            ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/indiana-backend@${DIGEST}
+            ${{ secrets.HARBOR_REGISTRY }}/teris/indiana-backend@${DIGEST}
