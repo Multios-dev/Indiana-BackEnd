@@ -1,1 +1,17 @@
+
 .env
+=======
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.idea/
+
+# Alembic cache
+alembic/__pycache__/
+
+app.zip
+
