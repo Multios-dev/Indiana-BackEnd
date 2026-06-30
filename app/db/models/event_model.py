@@ -65,6 +65,12 @@ class Event(Base):
 
     participations = relationship("Participation", back_populates="event")
 
+    identifiers = relationship(
+        "Identifier",
+        primaryjoin="and_(Event.id == foreign(Identifier.entity_id), Identifier.entity_type == 'event')",
+        viewonly=True,
+    )
+
 # Mapping table
 class Audience(Base):
     __tablename__ = "audiences"

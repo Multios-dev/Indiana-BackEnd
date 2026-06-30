@@ -7,14 +7,14 @@ from app.services.participation_service import get_participation_service, Partic
 
 router = APIRouter(prefix="/participations", tags=["participations"])
 
-@router.post("/", response_model=ParticipationOutput, summary="S'inscrire à un événement")
+@router.post("/", response_model=ParticipationOutput, response_model_by_alias=True, summary="S'inscrire à un événement")
 async def create_participation(
-        payload:CreateParticipationInput,
+        payload: CreateParticipationInput,
         service: ParticipationService = Depends(get_participation_service)
 ):
     return await service.create_participation(payload)
 
-@router.get("/", response_model=List[ParticipationOutput], summary="Récupérer les participations (avec ou sans filtres)")
+@router.get("/", response_model=List[ParticipationOutput], response_model_by_alias=True, summary="Récupérer les participations (avec ou sans filtres)")
 async def get_all_participations(
         request: Request,
         service: ParticipationService = Depends(get_participation_service)
@@ -22,10 +22,10 @@ async def get_all_participations(
     filters = dict(request.query_params)
     return await service.get_all_participations(filters)
 
-@router.put("/{participation_id}", response_model=ParticipationOutput, summary="Modifier une participation")
+@router.put("/{participation_id}", response_model=ParticipationOutput, response_model_by_alias=True, summary="Modifier une participation")
 async def update_participation(
         participation_id: UUID,
-        payload:ParticipationUpdateInput,
+        payload: ParticipationUpdateInput,
         service: ParticipationService = Depends(get_participation_service)
 ):
     return await service.update_participation(participation_id, payload)

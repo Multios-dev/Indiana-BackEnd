@@ -8,7 +8,7 @@ from typing import List
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/", response_model=UserOutput, summary="Créer un utilisateur")
+@router.post("/", response_model=UserOutput, response_model_by_alias=True, summary="Créer un utilisateur")
 async def create_user(
         payload: UserCreateInput,
         background_tasks: BackgroundTasks,
@@ -24,7 +24,7 @@ async def add_guardianship(
 ):
     return await service.add_guardian(guardian_id, minor_id)
 
-@router.get("/", response_model = List[UserOutput], summary="Récupérer les utilisateurs")
+@router.get("/", response_model=List[UserOutput], response_model_by_alias=True, summary="Récupérer les utilisateurs")
 async def get_users(
         request: Request,
         pagination: PaginationParams = Depends(),
@@ -37,27 +37,28 @@ async def get_users(
     }
     return await service.get_users(pagination.skip, pagination.limit, filters)
 
-@router.get("/{user_id}", response_model=UserOutput, summary="Récupérer un utilisateur spécifique")
+@router.get("/{user_id}", response_model=UserOutput, response_model_by_alias=True, summary="Récupérer un utilisateur spécifique")
 async def get_user(
         user_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_user_by_id(user_id)
 
-@router.get("/{guardian_id}/minors", response_model=List[UserOutput], summary="Récupérer les mineurs sous un responsable légal")
+@router.get("/{guardian_id}/minors", response_model=List[UserOutput], response_model_by_alias=True, summary="Récupérer les mineurs sous un responsable légal")
 async def get_minors(
         guardian_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_minors(guardian_id)
 
-@router.get("/{minor_id}/guardians", response_model=List[UserOutput], summary="Récupérer les responsables légaux d'un mineur")
+@router.get("/{minor_id}/guardians", response_model=List[UserOutput], response_model_by_alias=True, summary="Récupérer les responsables légaux d'un mineur")
 async def get_guardians(
         minor_id: UUID,
         service: UserService = Depends(get_user_service)
 ):
     return await service.get_guardians(minor_id)
-@router.put("/{user_id}", response_model=UserOutput, summary="Modifier les données d'un utilisateur")
+
+@router.put("/{user_id}", response_model=UserOutput, response_model_by_alias=True, summary="Modifier les données d'un utilisateur")
 async def update_user(
         user_id: UUID,
         payload: UserUpdateInput,

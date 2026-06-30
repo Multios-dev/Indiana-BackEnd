@@ -16,3 +16,9 @@ class Participation(Base):
     # Relationships
     user = relationship("User", back_populates="participations")
     event = relationship("Event", back_populates="participations")
+
+    identifiers = relationship(
+        "Identifier",
+        primaryjoin="and_(Participation.id == foreign(Identifier.entity_id), Identifier.entity_type == 'participation')",
+        viewonly=True,
+    )

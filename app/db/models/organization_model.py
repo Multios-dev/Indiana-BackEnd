@@ -67,3 +67,9 @@ class Organization(Base):
         back_populates="organization",
         uselist=False
     )
+
+    identifiers = relationship(
+        "Identifier",
+        primaryjoin="and_(Organization.id == foreign(Identifier.entity_id), Identifier.entity_type == 'organization')",
+        viewonly=True,
+    )

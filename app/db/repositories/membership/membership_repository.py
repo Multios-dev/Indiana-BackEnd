@@ -3,6 +3,7 @@ from app.db.models.membership_model import Membership
 from app.db.repositories.membership.membership_interface import MembershipInterface
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 from uuid import UUID
 from datetime import datetime
 
@@ -21,7 +22,7 @@ class MembershipRepository(MembershipInterface):
         self.db = db
 
     async def get_memberships(self, skip:int, limit:int, filters:dict | None = None):
-        stmt = select(Membership)
+        stmt = select(Membership).options(selectinload(Membership.identifiers))
         conditions = []
 
         if filters:
@@ -42,7 +43,7 @@ class MembershipRepository(MembershipInterface):
         return result.scalars().all()
 
     async def get_membership_by_id(self, membership_id:UUID):
-        stmt = select(Membership).where(Membership.id == membership_id)
+        stmt = select(Membership).where(Membership.id == membership_id).options(selectinload(Membership.identifiers))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -59,7 +60,7 @@ class MembershipRepository(MembershipInterface):
 
     async def update_membership(self, membership_id:UUID, data:dict):
         try:
-            stmt = select(Membership).where(Membership.id == membership_id)
+            stmt = select(Membership).where(Membership.id == membership_id).options(selectinload(Membership.identifiers))
             result = await self.db.execute(stmt)
             membership_found = result.scalar_one_or_none()
 
@@ -80,7 +81,7 @@ class MembershipRepository(MembershipInterface):
 
     async def delete_membership(self, membership_id:UUID)->None:
         try:
-            stmt = select(Membership).where(Membership.id == membership_id)
+            stmt = select(Membership).where(Membership.id == membership_id).options(selectinload(Membership.identifiers))
             result = await self.db.execute(stmt)
             membership_found = result.scalar_one_or_none()
 

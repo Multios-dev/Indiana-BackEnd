@@ -2,10 +2,12 @@ from fastapi import Depends, BackgroundTasks
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.address.address_repository import AddressRepository
+from app.db.repositories.identifier.identifier_repository import IdentifierRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from app.db.repositories.guardian.guardian_repository import GuardianRepository
 from app.db.session import get_db
+from app.core.sgp import SGP_CREATOR, sgp_notation
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
 from app.core.exceptions import (
@@ -27,7 +29,8 @@ def get_user_service(
     contact_repo = ContactRepository(db)
     address_repo = AddressRepository(db)
     guardian_repo = GuardianRepository(db)
-    return UserService(repo, contact_repo, address_repo, guardian_repo, email_service)
+    identifier_repo = IdentifierRepository(db)
+    return UserService(repo, contact_repo, address_repo, guardian_repo, email_service, identifier_repo)
 
 class UserService:
     def __init__(
@@ -36,7 +39,8 @@ class UserService:
             contact_repo:ContactRepository,
             address_repo:AddressRepository,
             guardian_repo:GuardianRepository,
-            email_service:EmailService
+            email_service:EmailService,
+            identifier_repo:IdentifierRepository,
     ):
         # Repository injection
         self.repo = repo
@@ -44,6 +48,7 @@ class UserService:
         self.address_repo = address_repo
         self.guardian_repo = guardian_repo
         self.email_service = email_service
+        self.identifier_repo = identifier_repo
 
     async def get_users(self, skip:int, limit:int, filters:dict | None = None):
         users = await self.repo.get_users(skip, limit, filters)
@@ -136,6 +141,13 @@ class UserService:
             )
         except SQLAlchemyError as e:
             raise DatabaseError() from e
+
+        await self.identifier_repo.create_identifier(
+            entity_type="user",
+            entity_id=full_user.id,
+            creator=SGP_CREATOR,
+            notation=sgp_notation("user", full_user.id),
+        )
 
         email = payload.contact.email if payload.contact and payload.contact.email else None
         if email:

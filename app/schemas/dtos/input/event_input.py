@@ -1,25 +1,28 @@
 from datetime import datetime
 from typing import List, Self
-from pydantic import BaseModel, ConfigDict, model_validator, field_validator, UUID4, Field
+from pydantic import BaseModel, ConfigDict, Field, UUID4, field_validator, model_validator
 from app.schemas.dtos.input.address_input import AddressCreateInput, AddressUpdateInput
+
 
 class AudienceInput(BaseModel):
     id: UUID4
-    label: str | None = None
-    model_config = ConfigDict(from_attributes=True)
+    label: str | None = Field(default=None, alias="skos:prefLabel")
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+
 
 class CreateEventInput(BaseModel):
-    name: str
-    description: str | None = None
-    event_type: str
+    name: str = Field(..., alias="dcterms:name")
+    description: str | None = Field(default=None, alias="dcterms:description")
+    event_type: str = Field(..., alias="dcterms:type")
     start_date: datetime | None = None
     end_date: datetime | None = None
     latitude: float | None = None
     longitude: float | None = None
-    parent_id: UUID4 | None = None
-    max_participants:int = Field(default=50, gt=0, le=100)
-    audiences: List[AudienceInput] | None = None
-    address:AddressCreateInput | None = None
+    parent_id: UUID4 | None = Field(default=None, alias="cpsvap:parentEvent")
+    max_participants: int = Field(default=50, gt=0, le=100, alias="sgp:maxParticipants")
+    audiences: List[AudienceInput] | None = Field(default=None, alias="cpsvap:audience")
+    address: AddressCreateInput | None = Field(default=None, alias="locn:address")
+    model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod
@@ -47,18 +50,20 @@ class CreateEventInput(BaseModel):
             raise ValueError("GPS and address fields cannot be both at the same time")
         return self
 
+
 class UpdateEventInput(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    event_type: str | None = None
+    name: str | None = Field(default=None, alias="dcterms:name")
+    description: str | None = Field(default=None, alias="dcterms:description")
+    event_type: str | None = Field(default=None, alias="dcterms:type")
     start_date: datetime | None = None
     end_date: datetime | None = None
     latitude: float | None = None
     longitude: float | None = None
-    parent_id: UUID4 | None = None
-    max_participants: int | None = Field(default=None, gt=0, le=100)
-    audiences: List[AudienceInput] | None = None
-    address:AddressUpdateInput | None = None
+    parent_id: UUID4 | None = Field(default=None, alias="cpsvap:parentEvent")
+    max_participants: int | None = Field(default=None, gt=0, le=100, alias="sgp:maxParticipants")
+    audiences: List[AudienceInput] | None = Field(default=None, alias="cpsvap:audience")
+    address: AddressUpdateInput | None = Field(default=None, alias="locn:address")
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
     @field_validator("start_date", "end_date", mode="before")
     @classmethod
@@ -73,9 +78,8 @@ class UpdateEventInput(BaseModel):
             raise ValueError("end_date must be after start_date")
         return self
 
-    model_config = ConfigDict(from_attributes=True)
 
 class InvitationEmailInput(BaseModel):
-    event_id:UUID4
-    invited_id:UUID4
-    inviter_id:UUID4
+    event_id: UUID4
+    invited_id: UUID4
+    inviter_id: UUID4

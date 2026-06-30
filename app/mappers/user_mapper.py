@@ -2,6 +2,7 @@ from app.db.models.address_model import Address
 from app.db.models.user_model import User
 from app.db.models.contact_model import Contact
 from app.schemas.dtos.input.user_input import UserCreateInput
+from app.core.security import hash_password
 
 class UserMapper:
     @staticmethod
@@ -10,6 +11,8 @@ class UserMapper:
             exclude={"contact", "home_address", "residential_address"},
             exclude_none=True
         )
+        if "password" in data:
+            data["password"] = hash_password(data["password"])
         return User(**data)
 
     @staticmethod

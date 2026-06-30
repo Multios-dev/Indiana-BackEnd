@@ -38,3 +38,9 @@ class Membership(Base):
         "Organization",
         back_populates="memberships"
     )
+
+    identifiers = relationship(
+        "Identifier",
+        primaryjoin="and_(Membership.id == foreign(Identifier.entity_id), Identifier.entity_type == 'membership')",
+        viewonly=True,
+    )

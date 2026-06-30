@@ -29,7 +29,8 @@ class OrganizationRepository(OrganizationInterface):
         stmt = (select(Organization)
                 .options(
                     selectinload(Organization.contact),
-                    selectinload(Organization.address)
+                    selectinload(Organization.address),
+                    selectinload(Organization.identifiers)
                     )
                 )
         conditions=[]
@@ -56,7 +57,8 @@ class OrganizationRepository(OrganizationInterface):
                 .where(Organization.id == org_id)
                 .options(
                     selectinload(Organization.contact),
-                    selectinload(Organization.address)
+                    selectinload(Organization.address),
+                    selectinload(Organization.identifiers)
                     )
                 )
         result = await self.db.execute(stmt)

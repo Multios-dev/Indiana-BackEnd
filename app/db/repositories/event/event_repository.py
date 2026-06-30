@@ -24,7 +24,8 @@ class EventRepository(EventInterface):
         stmt = (select(Event)
                 .options(
             selectinload(Event.audiences),
-                    selectinload(Event.address)
+                    selectinload(Event.address),
+                    selectinload(Event.identifiers)
                 )
         )
         conditions=[]
@@ -49,7 +50,7 @@ class EventRepository(EventInterface):
     async def get_event_by_id(self, event_id:UUID):
         stmt = (select(Event)
                 .where(Event.id == event_id)
-                .options(selectinload(Event.audiences), selectinload(Event.address))
+                .options(selectinload(Event.audiences), selectinload(Event.address), selectinload(Event.identifiers))
                 )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
@@ -96,7 +97,7 @@ class EventRepository(EventInterface):
             # Reload with audiences and addresses
             stmt = (select(Event)
                     .where(Event.id == event_id)
-                    .options(selectinload(Event.audiences), selectinload(Event.address))
+                    .options(selectinload(Event.audiences), selectinload(Event.address), selectinload(Event.identifiers))
                     )
             result = await self.db.execute(stmt)
             return result.scalar_one()
@@ -109,7 +110,7 @@ class EventRepository(EventInterface):
         stmt = (
             select(Event)
             .where(Event.id == event_id)
-            .options(selectinload(Event.audiences), selectinload(Event.address))
+            .options(selectinload(Event.audiences), selectinload(Event.address), selectinload(Event.identifiers))
         )
         result = await self.db.execute(stmt)
         event_found = result.scalar_one_or_none()

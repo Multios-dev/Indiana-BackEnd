@@ -59,7 +59,8 @@ class UserRepository(UserInterface):
             .options(
                 selectinload(User.contact),
                 selectinload(User.home_address),
-                selectinload(User.residential_address)
+                selectinload(User.residential_address),
+                selectinload(User.identifiers)
             )
         )
         result = await self.db.execute(stmt)

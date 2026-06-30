@@ -3,12 +3,14 @@ import traceback
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.models.membership_model import Membership
+from app.db.repositories.identifier.identifier_repository import IdentifierRepository
 from app.db.repositories.membership.membership_repository import MembershipRepository
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
+from app.core.sgp import SGP_CREATOR, sgp_notation
 from app.mappers.membership_mapper import MembershipMapper
 from app.schemas.dtos.input.membership_input import CreateMembershipInput, UpdateMembershipInput
 from app.core.exceptions import (
@@ -25,18 +27,21 @@ def get_membership_service(db: AsyncSession = Depends(get_db)):
     repo = MembershipRepository(db)
     user_repo = UserRepository(db)
     org_repo = OrganizationRepository(db)
-    return MembershipService(repo, user_repo, org_repo)
+    identifier_repo = IdentifierRepository(db)
+    return MembershipService(repo, user_repo, org_repo, identifier_repo)
 
 class MembershipService:
     def __init__(
             self,
             repo: MembershipRepository,
             repo_user: UserRepository,
-            repo_organization: OrganizationRepository
+            repo_organization: OrganizationRepository,
+            identifier_repo: IdentifierRepository,
     ):
         self.repo = repo
         self.repo_user = repo_user
         self.repo_organization = repo_organization
+        self.identifier_repo = identifier_repo
 
     async def get_memberships(self, skip:int, limit:int, filters: dict | None = None) -> list[Membership]:
         memberships = await self.repo.get_memberships(skip, limit, filters)
@@ -64,10 +69,17 @@ class MembershipService:
 
         try:
             membership = MembershipMapper.to_membership_entity(payload)
-            return await self.repo.create_membership(membership)
-
+            created = await self.repo.create_membership(membership)
         except SQLAlchemyError as e:
             raise DatabaseError() from e
+
+        await self.identifier_repo.create_identifier(
+            entity_type="membership",
+            entity_id=created.id,
+            creator=SGP_CREATOR,
+            notation=sgp_notation("membership", created.id),
+        )
+        return created
 
     async def update_membership(self, membership_id: UUID, payload: UpdateMembershipInput):
         membership = await self.repo.get_membership_by_id(membership_id)

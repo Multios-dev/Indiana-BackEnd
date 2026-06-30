@@ -7,14 +7,14 @@ from uuid import UUID
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
-@router.post("", response_model=OrganizationOutput, summary="Créer une organisation")
+@router.post("", response_model=OrganizationOutput, response_model_by_alias=True, summary="Créer une organisation")
 async def create_organization(
         payload: CreateOrganizationInput,
         service: OrganizationService = Depends(get_organization_service)
 ):
     return await service.create_organization(payload)
 
-@router.get("", response_model=list[OrganizationOutput], summary="Récupérer toutes les organisations")
+@router.get("", response_model=list[OrganizationOutput], response_model_by_alias=True, summary="Récupérer toutes les organisations")
 async def get_organizations(
         request: Request,
         pagination: PaginationParams = Depends(),
@@ -27,14 +27,14 @@ async def get_organizations(
     }
     return await service.get_all_organizations(pagination.skip, pagination.limit, filters)
 
-@router.get("/{org_id}", response_model=OrganizationOutput, summary="Récupérer une organisation spécifique")
+@router.get("/{org_id}", response_model=OrganizationOutput, response_model_by_alias=True, summary="Récupérer une organisation spécifique")
 async def get_organization(
         org_id: UUID,
         service: OrganizationService = Depends(get_organization_service)
 ):
     return await service.get_organization_by_id(org_id)
 
-@router.put("/{org_id}", response_model=OrganizationOutput, summary="Modifier une organisation")
+@router.put("/{org_id}", response_model=OrganizationOutput, response_model_by_alias=True, summary="Modifier une organisation")
 async def update_organization(
         org_id: UUID,
         payload: UpdateOrganizationInput,

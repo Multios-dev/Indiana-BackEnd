@@ -85,6 +85,12 @@ class User(Base):
 
     participations = relationship("Participation", back_populates="user")
 
+    identifiers = relationship(
+        "Identifier",
+        primaryjoin="and_(User.id == foreign(Identifier.entity_id), Identifier.entity_type == 'user')",
+        viewonly=True,
+    )
+
 
 # Mapping table
 class GuardianRelationship(Base):

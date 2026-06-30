@@ -5,11 +5,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.exceptions import EventNotFoundError, UserNotFoundError, AlreadyInvitedError, DatabaseError, \
     ParticipationNotFoundError, EmptyUpdatePayloadError, EventFullError
 from app.db.repositories.event.event_repository import EventRepository
+from app.db.repositories.identifier.identifier_repository import IdentifierRepository
 from app.db.repositories.participation.participation_repository import ParticipationRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
+from app.core.sgp import SGP_CREATOR, sgp_notation
 from app.mappers.participation_mapper import ParticipationMapper
 from app.schemas.dtos.input.participation_input import ParticipationInvitationInput, ParticipationUpdateInput, \
     CreateParticipationInput
@@ -19,18 +21,21 @@ def get_participation_service(db:AsyncSession = Depends(get_db)):
     participation_repo = ParticipationRepository(db)
     event_repo = EventRepository(db)
     user_repo = UserRepository(db)
-    return ParticipationService(participation_repo, event_repo, user_repo)
+    identifier_repo = IdentifierRepository(db)
+    return ParticipationService(participation_repo, event_repo, user_repo, identifier_repo)
 
 class ParticipationService:
     def __init__(
             self,
             participation_repo:ParticipationRepository,
             event_repo:EventRepository,
-            user_repo:UserRepository
+            user_repo:UserRepository,
+            identifier_repo:IdentifierRepository,
     ):
         self.participation_repo = participation_repo
         self.event_repo = event_repo
         self.user_repo = user_repo
+        self.identifier_repo = identifier_repo
 
     async def invite_to_event(self, payload:ParticipationInvitationInput):
         try:
@@ -50,6 +55,12 @@ class ParticipationService:
 
             participation = ParticipationMapper.to_participation_entity(payload)
             await self.participation_repo.invite_to_event(participation)
+            await self.identifier_repo.create_identifier(
+                entity_type="participation",
+                entity_id=participation.id,
+                creator=SGP_CREATOR,
+                notation=sgp_notation("participation", participation.id),
+            )
             return {"success": True}
         except (EventNotFoundError, UserNotFoundError, AlreadyInvitedError, EventFullError):
             raise
@@ -97,8 +108,19 @@ class ParticipationService:
 
         participation = ParticipationMapper.to_participation_entity(payload)
         try:
-            await self.participation_repo.create_participation(participation)
-            return participation
+            created = await self.participation_repo.create_participation(participation)
+        except (EventNotFoundError, EventFullError):
+            raise
+        except SQLAlchemyError as e:
+            raise DatabaseError() from e
+
+        await self.identifier_repo.create_identifier(
+            entity_type="participation",
+            entity_id=created.id,
+            creator=SGP_CREATOR,
+            notation=sgp_notation("participation", created.id),
+        )
+        return created
         except (EventNotFoundError, EventFullError):
             raise
         except SQLAlchemyError as e:

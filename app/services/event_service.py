@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, BackgroundTasks
 from app.db.repositories.address.address_repository import AddressRepository
 from app.db.repositories.event.event_repository import EventRepository
+from app.db.repositories.identifier.identifier_repository import IdentifierRepository
 from app.db.repositories.user.user_repository import UserRepository
 from app.db.session import get_db
+from app.core.sgp import SGP_CREATOR, sgp_notation
 from app.mappers.event_mapper import EventMapper
 from app.schemas.dtos.input.event_input import UpdateEventInput, CreateEventInput, InvitationEmailInput
 from datetime import datetime
@@ -22,7 +24,8 @@ def get_event_service(
     repo = EventRepository(db)
     address_repo = AddressRepository(db)
     user_repo = UserRepository(db)
-    return EventService(repo, address_repo, user_repo, email_service)
+    identifier_repo = IdentifierRepository(db)
+    return EventService(repo, address_repo, user_repo, email_service, identifier_repo)
 
 def make_naive(dt: datetime | None) -> datetime | None:
     if dt is None:
@@ -36,12 +39,14 @@ class EventService:
             repo:EventRepository,
             address_repo:AddressRepository,
             user_repo:UserRepository,
-            email_service: EmailService
+            email_service: EmailService,
+            identifier_repo: IdentifierRepository,
     ):
         self.repo = repo
         self.address_repo = address_repo
         self.user_repo = user_repo
         self.email_service = email_service
+        self.identifier_repo = identifier_repo
 
     async def get_all_events(self, skip:int, limit:int, filters:dict | None = None):
         events = await self.repo.get_all_events(skip, limit, filters)
@@ -70,9 +75,17 @@ class EventService:
             event.audiences = await self.repo.get_audiences_by_ids(audience_ids)
 
         try:
-            return await self.repo.create_event(event, address=address)
+            created = await self.repo.create_event(event, address=address)
         except SQLAlchemyError as e:
             raise DatabaseError() from e
+
+        await self.identifier_repo.create_identifier(
+            entity_type="event",
+            entity_id=created.id,
+            creator=SGP_CREATOR,
+            notation=sgp_notation("event", created.id),
+        )
+        return created
 
     async def update_event(self, event_id:UUID, payload:UpdateEventInput):
         event = await self.repo.get_event_by_id(event_id)

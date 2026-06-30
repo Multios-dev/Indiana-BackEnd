@@ -2,6 +2,7 @@ from typing import List
 from uuid import UUID
 from sqlalchemy import select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from app.db.models.participation_model import Participation
 from app.db.repositories.participation.participation_interface import ParticipationInterface
 
@@ -23,15 +24,15 @@ class ParticipationRepository(ParticipationInterface):
 
     async def get_participation_by_user_and_event(self, user_id:UUID, event_id:UUID) -> Participation:
         stmt = (select(Participation)
-                .where(Participation.user_id == user_id, Participation.event_id == event_id))
-
+                .where(Participation.user_id == user_id, Participation.event_id == event_id)
+                .options(selectinload(Participation.identifiers)))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_participation_by_id(self, participation_id:UUID)->Participation:
         stmt = (select(Participation)
                 .where(Participation.id == participation_id)
-                )
+                .options(selectinload(Participation.identifiers)))
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -47,7 +48,7 @@ class ParticipationRepository(ParticipationInterface):
         return result.scalar_one_or_none()
 
     async def get_all_participations(self, filters:dict | None = None)->List[Participation]:
-        stmt = select(Participation)
+        stmt = select(Participation).options(selectinload(Participation.identifiers))
 
         conditions = []
 
@@ -84,5 +85,6 @@ class ParticipationRepository(ParticipationInterface):
     async def create_participation(self, participation:Participation) ->Participation:
         self.db.add(participation)
         await self.db.commit()
-        await self.db.refresh(participation)
-        return participation
+        stmt = select(Participation).where(Participation.id == participation.id).options(selectinload(Participation.identifiers))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()

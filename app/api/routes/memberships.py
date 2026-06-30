@@ -9,14 +9,14 @@ from uuid import UUID
 
 router = APIRouter(prefix="/memberships", tags=["memberships"])
 
-@router.post("/", response_model=MembershipOutput, summary="Créer un mandat")
+@router.post("/", response_model=MembershipOutput, response_model_by_alias=True, summary="Créer un mandat")
 async def create_membership(
         payload: CreateMembershipInput,
         service: MembershipService = Depends(get_membership_service)
 ):
     return await service.create_membership(payload)
 
-@router.get("/", response_model=list[MembershipOutput], summary="Récupérer tous les mandats")
+@router.get("/", response_model=list[MembershipOutput], response_model_by_alias=True, summary="Récupérer tous les mandats")
 async def get_memberships(
         pagination: PaginationParams = Depends(),
         user_id: Optional[UUID] = None,
@@ -31,14 +31,14 @@ async def get_memberships(
 
     return await service.get_memberships(pagination.skip, pagination.limit, filters or None)
 
-@router.get("/{membership_id}", response_model=MembershipOutput, summary="Récupérer un mandat spécifique")
+@router.get("/{membership_id}", response_model=MembershipOutput, response_model_by_alias=True, summary="Récupérer un mandat spécifique")
 async def get_membership(
         membership_id: UUID,
         service: MembershipService = Depends(get_membership_service)
 ):
     return await service.get_membership_by_id(membership_id)
 
-@router.put("/{membership_id}", response_model=MembershipOutput, summary="Modifier un mandat")
+@router.put("/{membership_id}", response_model=MembershipOutput, response_model_by_alias=True, summary="Modifier un mandat")
 async def update_membership(
         membership_id: UUID,
         payload: UpdateMembershipInput,

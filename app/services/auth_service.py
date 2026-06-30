@@ -1,4 +1,5 @@
 from app.core.exceptions import UserNotFoundError, PasswordError
+from app.core.security import verify_password
 from app.db.repositories.auth.auth_repository import AuthRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
@@ -20,7 +21,7 @@ class AuthService:
         if not user:
             raise UserNotFoundError()
 
-        if payload.password != user.password:
+        if not verify_password(payload.password, user.password):
             raise PasswordError()
 
         if not user.contact or not user.contact.email:

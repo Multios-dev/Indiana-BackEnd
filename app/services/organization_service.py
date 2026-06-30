@@ -5,11 +5,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.db.models.organization_model import Organization
 from app.db.models.contact_model import Contact
 from app.db.repositories.address.address_repository import AddressRepository
+from app.db.repositories.identifier.identifier_repository import IdentifierRepository
 from app.db.repositories.organization.organization_repository import OrganizationRepository
 from app.db.repositories.contact.contact_repository import ContactRepository
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
+from app.core.sgp import SGP_CREATOR, sgp_notation
 from app.mappers.organization_mapper import OrganizationMapper
 from app.schemas.dtos.input.organization_input import UpdateOrganizationInput, CreateOrganizationInput
 from app.core.exceptions import (
@@ -25,13 +27,15 @@ def get_organization_service(db: AsyncSession = Depends(get_db)):
     repo = OrganizationRepository(db)
     contact_repo = ContactRepository(db)
     address_repo = AddressRepository(db)
-    return OrganizationService(repo, contact_repo, address_repo)
+    identifier_repo = IdentifierRepository(db)
+    return OrganizationService(repo, contact_repo, address_repo, identifier_repo)
 
 class OrganizationService:
-    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository, address_repo: AddressRepository):
+    def __init__(self, repo: OrganizationRepository, contact_repo: ContactRepository, address_repo: AddressRepository, identifier_repo: IdentifierRepository):
         self.repo = repo
         self.contact_repo = contact_repo
         self.address_repo = address_repo
+        self.identifier_repo = identifier_repo
 
     async def get_all_organizations(self, skip:int, limit:int, filters: dict | None = None):
         organizations = await self.repo.get_all_organizations(skip, limit, filters)
@@ -56,13 +60,21 @@ class OrganizationService:
         contact = OrganizationMapper.to_contact_entity(payload, org_id=None)  # id assigned in repo
 
         try:
-            return await self.repo.create_organization(
+            created = await self.repo.create_organization(
                 organization,
                 address=address,
                 contact=contact,
             )
         except SQLAlchemyError as e:
             raise DatabaseError() from e
+
+        await self.identifier_repo.create_identifier(
+            entity_type="organization",
+            entity_id=created.id,
+            creator=SGP_CREATOR,
+            notation=sgp_notation("organization", created.id),
+        )
+        return created
 
     async def update_organization(self, organization_id: UUID, payload: UpdateOrganizationInput):
         organization = await self.repo.get_organization_by_id(organization_id)

@@ -11,9 +11,9 @@ from app.services.participation_service import ParticipationService, get_partici
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-@router.post("/", response_model=EventOutput, summary="Créer un événement")
+@router.post("/", response_model=EventOutput, response_model_by_alias=True, summary="Créer un événement")
 async def create_event(
-        payload:CreateEventInput,
+        payload: CreateEventInput,
         service: EventService = Depends(get_event_service)
 ):
     return await service.create_event(payload)
@@ -25,9 +25,9 @@ async def invite_to_event(
 ):
     return await service.invite_to_event(payload)
 
-@router.get("/", response_model=List[EventOutput], summary="Récupérer tous les événements")
+@router.get("/", response_model=List[EventOutput], response_model_by_alias=True, summary="Récupérer tous les événements")
 async def get_all_events(
-        request:Request,
+        request: Request,
         pagination: PaginationParams = Depends(),
         service: EventService = Depends(get_event_service)
 ):
@@ -44,9 +44,9 @@ async def count_events(
 ):
     return await service.count_events()
 
-@router.get("/{event_id}", response_model=EventOutput, summary="Récupérer un événement spécifique")
+@router.get("/{event_id}", response_model=EventOutput, response_model_by_alias=True, summary="Récupérer un événement spécifique")
 async def get_event_by_id(
-        event_id:UUID,
+        event_id: UUID,
         service: EventService = Depends(get_event_service)
 ):
     return await service.get_event_by_id(event_id)
@@ -58,17 +58,17 @@ async def get_participant_count(
 ):
     return await service.get_participation_count(event_id)
 
-@router.put("/{event_id}", response_model=EventOutput, summary="Modifier un événement")
+@router.put("/{event_id}", response_model=EventOutput, response_model_by_alias=True, summary="Modifier un événement")
 async def update_event(
-        event_id:UUID,
-        payload:UpdateEventInput,
+        event_id: UUID,
+        payload: UpdateEventInput,
         service: EventService = Depends(get_event_service)
 ):
     return await service.update_event(event_id, payload)
 
 @router.delete("/{event_id}", status_code=200, response_model=dict, summary="Supprimer un événement")
 async def delete_event(
-        event_id:UUID,
+        event_id: UUID,
         service: EventService = Depends(get_event_service)
 ):
     return await service.delete_event(event_id)
